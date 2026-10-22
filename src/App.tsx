@@ -1,3 +1,5 @@
+import type { SocialCard } from "./game/social";
+import { warmThumbnails, type ThumbnailProgress } from "./services/cardAssets";
 import {
   useCallback,
   useEffect,
@@ -62,6 +64,7 @@ import {
   Odds,
   SettingsPanel,
 } from "./components/Overlays";
+import "./styles/mini-update.css";
 type Page = "home" | "shop" | "rip" | "cards" | "social";
 type Overlay =
   | "missions"
@@ -76,11 +79,31 @@ export default function App({
   onOpenProjectFiles,
 }: { onOpenProjectFiles?: () => void } = {}) {
   const game = useGame();
+  const [artProgress, setArtProgress] = useState<ThumbnailProgress>({
+    done: 0,
+    total: allCards.length,
+    failed: 0,
+  });
+  const [artReady, setArtReady] = useState(false);
+  useEffect(() => {
+    const stop = warmThumbnails(allCards, (p) => {
+      if (p.done % 16 === 0 || p.done === p.total) setArtProgress(p);
+      if (p.total && p.done === p.total) setArtReady(true);
+    });
+    const timeout = setTimeout(() => setArtReady(true), 4500);
+    return () => {
+      stop();
+      clearTimeout(timeout);
+    };
+  }, []);
   const trade = useTrading(game);
   const miniSocial = useSocial(game);
   const [page, setPage] = useState<Page>("home");
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [overlay, setOverlay] = useState<Overlay>(null);
+  const [inspectPreview, setInspectPreview] = useState<
+    SocialCard | undefined
+  >();
   const [inspectId, setInspectId] = useState<string | null>(null);
   const [recycleId, setRecycleId] = useState<string | null>(null);
   const [sellQuote, setSellQuote] = useState<SaleQuote | null>(null);
@@ -187,23 +210,29 @@ export default function App({
       /* Game store displays the failure. */
     }
   }
-  function inspectCard(id: string) {
+  function inspectCard(id: string, preview?: SocialCard) {
+    setInspectPreview(preview);
     setInspectId(id);
     if (game.save?.owned.some((c) => c.instanceId === id))
       void game.update(inspect).catch(() => {});
   }
+  const saleRequest = useRef(0);
   async function prepareSale(id: string) {
+    const request = ++saleRequest.current;
     setRecycleId(id);
     setSellQuote(null);
     setSaleError("");
     setSaleLoading(true);
     const c = game.save?.owned.find((o) => o.instanceId === id);
     try {
-      if (c) setSellQuote(await saleQuote(c.cardId, c.finish, c.ham));
+      if (c) {
+        const quote = await saleQuote(c.cardId, c.finish, c.ham);
+        if (request === saleRequest.current) setSellQuote(quote);
+      }
     } catch (e) {
-      setSaleError((e as Error).message);
+      if (request === saleRequest.current) setSaleError((e as Error).message);
     } finally {
-      setSaleLoading(false);
+      if (request === saleRequest.current) setSaleLoading(false);
     }
   }
   function changedSettings(s: Settings) {
@@ -211,7 +240,7 @@ export default function App({
     audio.play("tap");
   }
   const ready =
-    game.save && game.profile
+    game.save && game.profile && artReady
       ? { ...game, save: game.save, profile: game.profile }
       : null;
   return (
@@ -249,13 +278,23 @@ export default function App({
             <div className="loading-screen">
               <Sparkles size={36} />
               <h1>PACK MINI</h1>
-              <p>{game.error || "Preparing your next discovery…"}</p>
+              <p>
+                {game.error ||
+                  `Preparing card art · ${artProgress.done}/${artProgress.total}`}
+              </p>
               {game.error && (
                 <button className="secondary" onClick={game.retry}>
                   TRY AGAIN
                 </button>
               )}
-              <span className="loading-line" />
+              <progress
+                aria-label="Card artwork loading"
+                max={artProgress.total}
+                value={artProgress.done}
+              />
+              <small>
+                Small scans cache now; detailed art loads as you browse.
+              </small>
             </div>
           ) : (
             <>
@@ -507,6 +546,8 @@ export default function App({
                     onClose={closeInspector}
                   >
                     <Inspector
+                      onSelectCopy={setInspectId}
+                      preview={inspectPreview}
                       id={inspectId}
                       game={ready}
                       onRecycle={(id) => void prepareSale(id)}
@@ -523,6 +564,21 @@ export default function App({
                       <h2>Sell this card?</h2>
                       {saleLoading && <p>Checking market references…</p>}
                       {saleError && <p role="alert">{saleError}</p>}
+                      <p className="sale-copy-label">
+                        Selling this exact copy:{" "}
+                        {game.save!.owned.find(
+                          (c) => c.instanceId === recycleId,
+                        )?.ham
+                          ? `HAM ${game.save!.owned.find((c) => c.instanceId === recycleId)?.ham}`
+                          : "UNGRADED"}{" "}
+                        ·{" "}
+                        {
+                          game.save!.owned.find(
+                            (c) => c.instanceId === recycleId,
+                          )?.finish
+                        }{" "}
+                        · ID …{recycleId.slice(-8)}
+                      </p>
                       {sellQuote && (
                         <>
                           <div className="sale-offer">

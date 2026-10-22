@@ -1,4 +1,12 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import type { SocialCard } from "../game/social";
+import { bestCopy } from "../game/copies";
+import {
+  useEffect,
+  useRef,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import {
   ArrowLeft,
   Coins,
@@ -11,8 +19,18 @@ import type { Game } from "../services/useGame";
 import type { SetDefinition } from "../game/types";
 import { allCards, sets, cardById } from "../game/catalogue";
 import { utcDay, claimDaily, missions, level } from "../game/engine";
-import { makeBinders, binderOwned, earnedBadges } from "../game/binders";
-import { useCollectionValue } from "../services/pricing";
+import {
+  makeBinders,
+  binderOwned,
+  binderAcceptsFinish,
+  earnedBadges,
+} from "../game/binders";
+import { cardLabel, pullFinish } from "../game/finishes";
+import {
+  useOwnedPrices,
+  formatCardPrice,
+  useCollectionValue,
+} from "../services/pricing";
 import { CardView } from "./CardView";
 import { BoosterPack } from "./BoosterPack";
 import "../styles/mini.css";
@@ -80,7 +98,11 @@ export function Home({
   onEarn?: () => void;
 }) {
   const s = game.save,
-    recent = [...s.owned].reverse().slice(0, 5),
+    prices = useOwnedPrices(s),
+    recent = [...s.owned]
+      .filter((c) => (prices[c.cardId + ":" + c.finish]?.usd ?? 0) >= 10)
+      .sort((a, b) => b.obtainedAt - a.obtainedAt)
+      .slice(0, 5),
     daily = s.lastFreePack === utcDay(),
     badges = earnedBadges(s, allCards);
   return (
@@ -97,7 +119,12 @@ export function Home({
             <button
               className="primary"
               disabled={game.busy}
-              onClick={() => onBuy(sets[0], "daily")}
+              onClick={() =>
+                onBuy(
+                  sets.find((s) => s.id === "mini-all")!,
+                  "daily",
+                )
+              }
             >
               {s.pending ? "CONTINUE PACK" : "CLAIM FREE PACK"}{" "}
               <Gift size={15} />
@@ -146,27 +173,32 @@ export function Home({
         </button>
       </div>
       <div className="section-title">
-        <h2>Fresh from the foil</h2>
+        <h2>Your last 5 big hits</h2>
         <button className="text-button" onClick={onCards}>
           BINDERS →
         </button>
       </div>
       <div className="recent-row">
-        {recent.length
-          ? recent.map((c) => (
-              <button key={c.instanceId} onClick={onCards}>
-                <CardView
-                  card={cardById.get(c.cardId)}
-                  finish={c.finish}
-                  ham={c.ham}
-                />
-              </button>
-            ))
-          : sets.map((p) => (
-              <button key={p.id} onClick={() => onBuy(p)}>
-                <CardView card={cardById.get(p.hero)} finish="holo" />
-              </button>
-            ))}
+        {recent.length ? (
+          recent.map((c) => (
+            <button key={c.instanceId} onClick={onCards}>
+              <CardView
+                card={cardById.get(c.cardId)}
+                finish={c.finish}
+                ham={c.ham}
+              />
+              <small>
+                {prices[c.cardId + ":" + c.finish]
+                  ? formatCardPrice(prices[c.cardId + ":" + c.finish].price)
+                  : ""}
+              </small>
+            </button>
+          ))
+        ) : (
+          <p className="big-hit-empty">
+            Your $10+ discoveries land here. Keep ripping ♡
+          </p>
+        )}
       </div>
       <p className="mini-motto">
         11 favourites. Every little art obsession. uwu ✧
@@ -213,7 +245,10 @@ export function Shop({
                 </span>
               </div>
               <BoosterPack set={s} small />
-              <small>{s.total} collectible cards</small>
+              <small>
+                {s.id === "mini-holo" ? "5 HOLOS · " : ""}
+                {s.total} collectible cards
+              </small>
             </button>
             <button
               className="text-button"
@@ -235,7 +270,10 @@ export function Shop({
           aria-label="Confirm pack purchase"
         >
           <h3>{confirm.name}</h3>
-          <p>Five cards for {confirm.price} coins?</p>
+          <p>
+            Five {confirm.id === "mini-holo" ? "holo cards" : "cards"} for{" "}
+            {confirm.price} coins?
+          </p>
           <button
             className="primary full"
             disabled={game.busy}
@@ -259,13 +297,33 @@ export function Collection({
   onInspect,
 }: {
   game: ReadyGame;
-  onInspect: (id: string) => void;
+  onInspect: (id: string, preview?: SocialCard) => void;
 }) {
   const binders = useMemo(() => makeBinders(allCards), []),
     [id, setId] = useState<string | null>(null),
     [q, setQ] = useState(""),
     [filter, setFilter] = useState("all"),
-    [limit, setLimit] = useState(48);
+    [limit, setLimit] = useState(48),
+    [byValue, setByValue] = useState(false);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const prices = useOwnedPrices(game.save);
+  useEffect(() => {
+    setLimit(48);
+  }, [id, filter, byValue]);
+  useEffect(() => {
+    if (!sentinel.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setLimit((n) => n + 48);
+      },
+      {
+        root: sentinel.current.closest(".page-scroll"),
+        rootMargin: "0px 0px 250px 0px",
+      },
+    );
+    observer.observe(sentinel.current);
+    return () => observer.disconnect();
+  }, [id, limit, filter, q, byValue]);
   const s = game.save,
     b =
       id === "ham10"
@@ -292,12 +350,29 @@ export function Collection({
         ? new Set(binderOwned(b, s, allCards).map((c) => c.id))
         : new Set<string>();
   const cards =
-    b?.cards.filter(
-      (c) =>
-        (c.name + " " + c.species).toLowerCase().includes(q.toLowerCase()) &&
-        (filter === "all" ||
-          (filter === "owned" ? completed.has(c.id) : !completed.has(c.id))),
-    ) ?? [];
+    b?.cards
+      .filter(
+        (c) =>
+          (c.name + " " + c.species).toLowerCase().includes(q.toLowerCase()) &&
+          (filter === "all" ||
+            (filter === "owned" ? completed.has(c.id) : !completed.has(c.id))),
+      )
+      .filter((c) => !byValue || completed.has(c.id))
+      .sort((a, b) => {
+        if (!byValue) return 0;
+        const value = (c: typeof a) => {
+          const copies = s.owned.filter(
+            (o) =>
+              binderAcceptsFinish(id ?? "all", o.finish) &&
+              (o.cardId === c.id || cardById.get(o.cardId)?.artId === c.artId),
+          );
+          return Math.max(
+            -1,
+            ...copies.map((o) => prices[o.cardId + ":" + o.finish]?.usd ?? -1),
+          );
+        };
+        return value(b) - value(a);
+      }) ?? [];
   return (
     <div className="page mini-collection">
       {!b ? (
@@ -360,80 +435,110 @@ export function Collection({
         </>
       ) : (
         <>
-          <div className="mini-section-line">
-            <button
-              className="icon-button"
-              aria-label="Back to binders"
-              onClick={() => setId(null)}
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <h2>{b.name}</h2>
-            <small>
-              {completed.size}/{b.cards.length}
-            </small>
-          </div>
-          <div className="mini-filter">
-            <input
-              aria-label="Search cards"
-              placeholder="Find a favourite…"
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setLimit(48);
-              }}
-            />
-            {["all", "owned", "missing"].map((f) => (
+          <div className="binder-toolbar">
+            <div className="mini-section-line">
               <button
-                className={filter === f ? "active" : ""}
-                onClick={() => setFilter(f)}
-                key={f}
+                className="icon-button"
+                aria-label="Back to binders"
+                onClick={() => setId(null)}
               >
-                {f}
+                <ArrowLeft size={18} />
               </button>
-            ))}
+              <h2>{b.name}</h2>
+              <small>
+                {completed.size}/{b.cards.length}
+              </small>
+            </div>
+            <div className="mini-filter">
+              <input
+                aria-label="Search cards"
+                placeholder="Find a favourite…"
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setLimit(48);
+                }}
+              />
+              {["all", "owned", "missing"].map((f) => (
+                <button
+                  className={filter === f ? "active" : ""}
+                  onClick={() => setFilter(f)}
+                  key={f}
+                >
+                  {f}
+                </button>
+              ))}
+              <button
+                className={byValue ? "active" : ""}
+                aria-pressed={byValue}
+                onClick={() => setByValue((v) => !v)}
+              >
+                VALUE ↓ · OWNED
+              </button>
+            </div>
           </div>
           <div className="binder-grid">
             {cards.slice(0, limit).map((c, slotIndex) => {
-              const own =
-                b?.id === "ham10"
-                  ? s.owned.find(
-                      (o) =>
-                        o.instanceId ===
-                        ("galleryInstanceId" in c ? c.galleryInstanceId : ""),
-                    )
-                  : (owned.get(c.id) ??
-                    s.owned.find(
-                      (o) => cardById.get(o.cardId)?.artId === c.artId,
-                    ));
+              const own = bestCopy(
+                s.owned
+                  .filter((o) => binderAcceptsFinish(b.id, o.finish))
+                  .filter((o) =>
+                    b.id === "ham10"
+                      ? o.instanceId ===
+                        ("galleryInstanceId" in c ? c.galleryInstanceId : "")
+                      : o.cardId === c.id ||
+                        (b.id !== "japanese" &&
+                          cardById.get(o.cardId)?.artId === c.artId),
+                  ),
+              );
+              const shown = own ? cardById.get(own.cardId)! : c;
+              const finish =
+                own?.finish ??
+                (b.id === "reverse"
+                  ? "reverse"
+                  : b.id === "holo"
+                    ? "holo"
+                    : pullFinish(c));
               return (
                 <button
                   className={`binder-slot ${completed.has(c.id) ? "owned" : "missing"}`}
                   key={c.id + (b.id === "ham10" ? slotIndex : "")}
-                  onClick={() => onInspect(own?.instanceId ?? c.id)}
+                  onClick={() =>
+                    onInspect(
+                      own?.instanceId ?? c.id,
+                      own
+                        ? undefined
+                        : { instanceId: "", cardId: c.id, finish },
+                    )
+                  }
                   aria-label={`${c.species} ${c.language} ${completed.has(c.id) ? "owned" : "missing"}`}
                 >
-                  <CardView
-                    card={c}
-                    ham={own?.ham}
-                    finish={own?.finish ?? (c.holo ? "holo" : "matte")}
-                  />
+                  <CardView card={shown} ham={own?.ham} finish={finish} />
                   <small>{c.species}</small>
                   <small>
-                    {c.language?.toUpperCase()} · {c.rarity}
+                    {shown.language?.toUpperCase()} · {cardLabel(shown, finish)}
                   </small>
+                  {byValue && own && (
+                    <small>
+                      {prices[own.cardId + ":" + own.finish]
+                        ? formatCardPrice(
+                            prices[own.cardId + ":" + own.finish].price,
+                          )
+                        : "Unpriced"}
+                    </small>
+                  )}
                   {completed.has(c.id) && <b className="mini-owned">✓</b>}
                 </button>
               );
             })}
           </div>
           {cards.length > limit && (
-            <button
-              className="secondary full"
-              onClick={() => setLimit((n) => n + 48)}
-            >
-              MORE ART · {cards.length - limit}
-            </button>
+            <div ref={sentinel} className="binder-sentinel" role="status">
+              Loading more art…
+            </div>
+          )}
+          {!cards.length && (
+            <p className="fine-print">No cards match this view.</p>
           )}
         </>
       )}

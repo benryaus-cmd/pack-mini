@@ -1,5 +1,7 @@
 import type { TradeJournal } from "./trading.ts";
 export interface CardDefinition {
+  variants?: { normal: boolean; holo: boolean; reverse: boolean };
+  finishImages?: Partial<Record<Finish, string>>;
   apiId?: string;
   language?: "en" | "ja";
   species?: string;
@@ -92,6 +94,7 @@ export interface MissionProgress {
   period: "daily" | "weekly" | "lifetime";
 }
 export interface Save {
+  dropBatch?: { ids: string[]; startedAt: number };
   pendingDrops?: { id: string; seed: number; startedAt: number }[];
   trades?: TradeJournal[];
   version: 1;

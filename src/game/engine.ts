@@ -1,3 +1,4 @@
+import { pullFinish } from "./finishes.ts";
 import { lockedTradeIds } from "./trading.ts";
 import { productById, productCost, slotPool } from "./products.ts";
 import type {
@@ -120,27 +121,25 @@ export function purchase(
     const instances: string[] = [];
     for (let index = 0; index < product.slots.length; index++) {
       const slot = product.slots[index],
-        pool = slotPool(slot, set),
+        pool = slotPool(
+          set.id === "mini-holo" ? { ...slot, reverse: false } : slot,
+          set,
+        ),
         tiers = [...new Set(pool.map((c) => c.tier))];
       const tier = slot.weighted ? rollTier(tiers, rng) : pick(tiers, rng);
       const c = pick(
         pool.filter((c) => c.tier === tier),
         rng,
       );
-      const finish: Finish =
-        c.tier === 6
-          ? "gold"
-          : c.tier === 5
-            ? "rainbow"
-            : c.tier === 4
-              ? "textured"
-              : c.tier === 3
-                ? "holo"
-                : slot.reverse
-                  ? "reverse"
-                  : c.holo
-                    ? "holo"
-                    : "matte";
+      const selectedFinish = pullFinish(
+        c,
+        set.id !== "mini-holo" && slot.reverse,
+      );
+      const finish =
+        set.id === "mini-holo" &&
+        ["gloss", "matte", "reverse"].includes(selectedFinish)
+          ? "holo"
+          : selectedFinish;
       const own: OwnedCard = {
         instanceId: id + "_" + index,
         cardId: c.id,

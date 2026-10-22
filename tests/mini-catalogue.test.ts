@@ -36,12 +36,15 @@ test("focused catalogue contains only eleven requested species, both languages a
 test("four real pack pools have tenfold costs and language/starter membership", () => {
   assert.deepEqual(
     sets.map((s) => s.price),
-    [1000, 1200, 1500, 800],
+    [800, 1000, 1500, 2000],
   );
-  assert.equal(sets[0].cards.length, allCards.length);
-  assert(sets[1].cards.every((c) => c.language === "en"));
+  assert.equal(
+    sets.find((s) => s.id === "mini-all")!.cards.length,
+    allCards.length,
+  );
+  assert(sets[3].cards.every((c) => c.holo));
   assert(sets[2].cards.every((c) => c.language === "ja"));
-  assert(sets[3].cards.every((c) => [1, 4, 7].includes(c.dexId!)));
+  assert(sets[0].cards.every((c) => [1, 4, 7].includes(c.dexId!)));
   assert(sets.every((s) => s.cards.some((c) => c.tier >= 2)));
   assert(makeBinders(allCards).every((b) => b.cards.length > 0));
 });

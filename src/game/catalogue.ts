@@ -13,13 +13,13 @@ const definitions = [
     test: (_: CardDefinition) => true,
   },
   {
-    id: "mini-en",
-    name: "ENGLISH CLUB",
-    title: "ENGLISH",
-    price: 1200,
+    id: "mini-holo",
+    name: "HOLO CLUB",
+    title: "HOLO",
+    price: 2000,
     color: "#91edda",
     hero: "Pikachu",
-    test: (c: CardDefinition) => c.language === "en",
+    test: (c: CardDefinition) => c.holo,
   },
   {
     id: "mini-ja",
@@ -40,24 +40,26 @@ const definitions = [
     test: (c: CardDefinition) => [1, 4, 7].includes(c.dexId ?? 0),
   },
 ];
-export const sets: SetDefinition[] = definitions.map((p) => {
-  const cards = allCards.filter(p.test);
-  return {
-    id: p.id,
-    name: p.name,
-    title: p.title,
-    price: p.price,
-    color: p.color,
-    era: "Mini",
-    releaseDate: "2026-10-22",
-    logo: "",
-    hero:
-      cards.find((c) => c.species === p.hero && c.tier >= 3)?.id ??
-      cards[0]?.id,
-    total: cards.length,
-    cards,
-  };
-});
+export const sets: SetDefinition[] = definitions
+  .sort((a, b) => a.price - b.price)
+  .map((p) => {
+    const cards = allCards.filter(p.test);
+    return {
+      id: p.id,
+      name: p.name,
+      title: p.title,
+      price: p.price,
+      color: p.color,
+      era: "Mini",
+      releaseDate: "2026-10-22",
+      logo: "",
+      hero:
+        cards.find((c) => c.species === p.hero && c.tier >= 3)?.id ??
+        cards[0]?.id,
+      total: cards.length,
+      cards,
+    };
+  });
 const originals = [...new Set(allCards.map((c) => c.setId))].map((id) => {
   const cards = allCards.filter((c) => c.setId === id);
   return {
@@ -74,7 +76,18 @@ const originals = [...new Set(allCards.map((c) => c.setId))].map((id) => {
     cards,
   };
 });
-export const setById = new Map([...sets, ...originals].map((s) => [s.id, s]));
+const legacyEnglish: SetDefinition = {
+  ...sets.find((s) => s.id === "mini-all")!,
+  id: "mini-en",
+  name: "ENGLISH CLUB",
+  title: "ENGLISH",
+  price: 1200,
+  cards: allCards.filter((c) => c.language === "en"),
+};
+legacyEnglish.total = legacyEnglish.cards.length;
+export const setById = new Map(
+  [...sets, legacyEnglish, ...originals].map((s) => [s.id, s]),
+);
 export const totalCards = allCards.length;
 export const heroCard = (s: SetDefinition) =>
   cardById.get(s.hero) ?? s.cards[0];

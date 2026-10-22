@@ -1,3 +1,7 @@
+import type { SocialCard } from "../game/social";
+import { copyRank } from "../game/copies";
+import { cardLabel, finishLabel } from "../game/finishes";
+import { lockedTradeIds } from "../game/trading";
 import { achievements, claimAchievement } from "../game/achievements";
 import {
   productById,
@@ -44,10 +48,14 @@ export function Inspector({
   id,
   game,
   onRecycle,
+  onSelectCopy,
+  preview,
 }: {
   id: string;
   game: Game;
   onRecycle: (id: string) => void;
+  onSelectCopy?: (id: string) => void;
+  preview?: SocialCard;
 }) {
   const save = game.save!;
   const own = save.owned.find((c) => c.instanceId === id);
@@ -55,6 +63,7 @@ export function Inspector({
   const [zoom, setZoom] = useState(false);
   const [grading, setGrading] = useState(false);
   const [gradeNotice, setGradeNotice] = useState("");
+  useEffect(() => setGradeNotice(""), [id]);
   const [motionEnabled, setMotionEnabled] = useState(true);
   const [motionError, setMotionError] = useState("");
   const [sensorGranted, setSensorGranted] = useState(() => {
@@ -115,11 +124,19 @@ export function Inspector({
   }, [motionEnabled, sensorGranted, id]);
   if (!card) return <p>This card is unavailable.</p>;
   const set = setById.get(card.setId)!;
-  const copies = save.owned.filter((c) => c.cardId === card.id);
+  const display = own ?? preview;
+  const copies = save.owned
+    .filter(
+      (c) =>
+        c.cardId === card.id ||
+        (card.artId && cardById.get(c.cardId)?.artId === card.artId),
+    )
+    .sort((a, b) => copyRank(b) - copyRank(a) || b.obtainedAt - a.obtainedAt);
   const canRecycle =
     own &&
     !save.pending?.instances.includes(own.instanceId) &&
-    !save.queued.some((p) => p.instances.includes(own.instanceId));
+    !save.queued.some((p) => p.instances.includes(own.instanceId)) &&
+    !lockedTradeIds(save).has(own.instanceId);
   async function share() {
     const text = `I discovered ${card!.name} in PACK MINI! ${set.name} · ${card!.rarity}`;
     try {
@@ -146,78 +163,122 @@ export function Inspector({
       >
         <CardView
           card={card}
-          ham={own?.ham}
-          finish={own?.finish ?? (card.holo ? "holo" : "matte")}
+          ham={display?.ham}
+          finish={display?.finish ?? (card.holo ? "holo" : "matte")}
           interactive
           large
           key={card.id}
         />
       </div>
+      {own && copies.length > 1 && (
+        <div className="copy-selector" aria-label="Choose physical copy">
+          <small>
+            {copies.length} COPIES · SELECT THE ONE TO GRADE OR SELL
+          </small>
+          <div>
+            {copies.map((c, i) => (
+              <button
+                key={c.instanceId}
+                aria-pressed={c.instanceId === id}
+                onClick={() => onSelectCopy?.(c.instanceId)}
+              >
+                <b>{c.ham ? `HAM ${c.ham}` : "UNGRADED"}</b>
+                <span>
+                  {finishLabel(c.finish)} ·{" "}
+                  {cardById.get(c.cardId)?.language?.toUpperCase()} · #{i + 1}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <span className={`rarity-badge tier-${card.tier}`}>
-        ✦ {tierNames[card.tier].toUpperCase()}
+        ✦{" "}
+        {cardLabel(
+          card,
+          display?.finish ?? (card.holo ? "holo" : "gloss"),
+        ).toUpperCase()}
       </span>
       <h2>{card.name}</h2>
       <p>
         {set.name} · #{card.localId}/{set.total}
       </p>
-      <CardPrice
-        cardId={card.id}
-        ham={own?.ham}
-        finish={own?.finish ?? (card.holo ? "holo" : "matte")}
-      />
+      <div className="inspect-value-grade">
+        <CardPrice
+          compact
+          cardId={card.id}
+          ham={display?.ham}
+          finish={display?.finish ?? (card.holo ? "holo" : "matte")}
+        />
+        {display && (
+          <section
+            className={`ham-panel ${display.ham === 10 ? "perfect" : ""}`}
+          >
+            <div>
+              <b>{display.ham ? `HAM ${display.ham}` : "UNGRADED"}</b>
+              <span>
+                {Math.round(hamMultiplier(display.ham) * 100)}% market sale
+                value
+              </span>
+            </div>
+            {display.ham ? (
+              <p>
+                {display.ham === 10
+                  ? "✦ PERFECT TEN. Absolute collector royalty. ✦"
+                  : "Graded and locked in. This rating travels with your card."}
+              </p>
+            ) : own ? (
+              <>
+                <button
+                  className="primary full"
+                  disabled={game.busy || grading}
+                  onClick={() => {
+                    setGrading(true);
+                    void game
+                      .update((s) => gradeCard(s, id))
+                      .then((s) => {
+                        const grade = s.owned.find(
+                          (c) => c.instanceId === id,
+                        )?.ham;
+                        setGradeNotice(
+                          grade === 10
+                            ? "✦ HAM 10 — PERFECT! Into the trophy vault!"
+                            : `HAM ${grade} — graded!`,
+                        );
+                        audio.play(grade === 10 ? "epic" : "rare");
+                        if (grade === 10) haptic([40, 30, 80], true);
+                      })
+                      .catch(() => {})
+                      .finally(() => setGrading(false));
+                  }}
+                >
+                  FREE HAM GRADE · ONE ROLL
+                </button>
+                <small>
+                  7:35% · 8:35% · 9:25% · 10:5%. A 7 lowers the sale value. One
+                  grade per card.
+                </small>
+              </>
+            ) : (
+              <p>Shared card · not owned</p>
+            )}
+            {gradeNotice && (
+              <p role="status" className="ham-celebration">
+                {gradeNotice}
+              </p>
+            )}
+          </section>
+        )}
+      </div>
       {own && (
-        <section className={`ham-panel ${own.ham === 10 ? "perfect" : ""}`}>
-          <div>
-            <b>{own.ham ? `HAM ${own.ham}` : "UNGRADED"}</b>
-            <span>
-              {Math.round(hamMultiplier(own.ham) * 100)}% market sale value
-            </span>
-          </div>
-          {own.ham ? (
-            <p>
-              {own.ham === 10
-                ? "✦ PERFECT TEN. Absolute collector royalty. ✦"
-                : "Graded and locked in. This rating travels with your card."}
-            </p>
-          ) : (
-            <>
-              <button
-                className="primary full"
-                disabled={game.busy || grading}
-                onClick={() => {
-                  setGrading(true);
-                  void game
-                    .update((s) => gradeCard(s, id))
-                    .then((s) => {
-                      const grade = s.owned.find(
-                        (c) => c.instanceId === id,
-                      )?.ham;
-                      setGradeNotice(
-                        grade === 10
-                          ? "✦ HAM 10 — PERFECT! Into the trophy vault!"
-                          : `HAM ${grade} — graded!`,
-                      );
-                      audio.play(grade === 10 ? "epic" : "rare");
-                      if (grade === 10) haptic([40, 30, 80], true);
-                    })
-                    .catch(() => {})
-                    .finally(() => setGrading(false));
-                }}
-              >
-                FREE HAM GRADE · ONE ROLL
-              </button>
-              <small>
-                7:35% · 8:35% · 9:25% · 10:5%. A 7 lowers the sale value. One
-                grade per card.
-              </small>
-            </>
-          )}
-          {gradeNotice && (
-            <p role="status" className="ham-celebration">
-              {gradeNotice}
-            </p>
-          )}
-        </section>
+        <button
+          className="primary full sell-card"
+          disabled={!canRecycle || game.busy}
+          onClick={() => onRecycle(own.instanceId)}
+        >
+          SELL CARD · {own.ham ? `HAM ${own.ham}` : "UNGRADED"} ·{" "}
+          {finishLabel(own.finish).toUpperCase()}
+        </button>
       )}
       <div className="inspect-details">
         <span>
@@ -226,8 +287,8 @@ export function Inspector({
         <span>
           FINISH
           <b>
-            {own
-              ? own.finish + " · prototype"
+            {display
+              ? finishLabel(display.finish)
               : card.holo
                 ? "Holo"
                 : "Catalogue preview"}
@@ -278,7 +339,7 @@ export function Inspector({
       <p className="fine-print">
         Drag to catch the light. Double-tap to zoom.
         <br />
-        Finishes are prototype display treatments.
+        Gloss and foil respond to the light.
       </p>
       {"DeviceOrientationEvent" in window && (
         <button

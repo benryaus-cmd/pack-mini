@@ -23,6 +23,11 @@ export function validateSave(raw: unknown): Save {
     !Array.isArray(s.claims)
   )
     throw Error("Save version is not supported");
+  if (!s.dropBatch && s.pendingDrops?.length)
+    s.dropBatch = {
+      ids: s.pendingDrops.map((b) => b.id),
+      startedAt: Math.min(...s.pendingDrops.map((b) => b.startedAt)),
+    };
   s.queued ??= [];
   s.lastFreePack ??= "";
   if (s.pending) {

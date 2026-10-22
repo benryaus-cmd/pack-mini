@@ -195,6 +195,7 @@ try {
     const { allCards } = await import("/src/game/catalogue.ts");
     await import("/src/styles/app.css");
     await import("/src/styles/mini.css");
+    await import("/src/styles/mini-update.css");
     const game = {
       profile: window.ms.profile,
       save: {
@@ -217,7 +218,12 @@ try {
     };
     document.body.innerHTML = '<div id="test-root"></div>';
     createRoot(document.getElementById("test-root")).render(
-      React.createElement(Social, { game, onInspect: () => {} }),
+      React.createElement(Social, {
+        game,
+        onInspect: (...args) => {
+          window.lastInspection = args;
+        },
+      }),
     );
     await window.ms.multiplayer.history();
   });
@@ -238,13 +244,103 @@ try {
       .evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight < 3),
     "incoming chat scrolls to latest",
   );
-  await pages[0].getByRole("button", { name: "Post a card for trade" }).click();
+  await pages[0]
+    .getByRole("button", { name: "Show off or trade a card" })
+    .click();
   await pages[0]
     .getByRole("dialog")
     .locator(".ms-card-grade")
     .filter({ hasText: "HAM 10" })
     .waitFor();
   await pages[0].getByRole("button", { name: "Close card picker" }).click();
+  // Show-offs are persistent chat records with exact grade/finish, not trade invites.
+  await pages[0]
+    .getByRole("button", { name: "Show off or trade a card" })
+    .click();
+  await pages[0].locator(".ms-picker-cards>button").first().click();
+  await pages[0].getByRole("button", { name: "SHOW OFF", exact: true }).click();
+  const show = pages[0]
+    .locator(".chat-message")
+    .filter({ hasText: "Showing off" });
+  await show.waitFor();
+  assert.equal(
+    await show.getByRole("button", { name: "Offer cards" }).count(),
+    0,
+  );
+  assert.equal(
+    await show.locator(".ms-reactions button").count(),
+    0,
+    "reaction counts stay hidden until used",
+  );
+  await show.getByRole("button", { name: "React to message" }).click();
+  assert.equal(await show.locator(".ms-reactions button").count(), 4);
+  await show.getByRole("button", { name: "Love reaction" }).click();
+  assert.equal(
+    (
+      await show.getByRole("button", { name: "Love reaction" }).innerText()
+    ).replace(/\s/g, ""),
+    "❤️1",
+  );
+  await pages[1].waitForFunction(() =>
+    window.ms.social
+      .snapshot()
+      .entries.some(
+        (e) => e.kind === "reaction" && e.reaction === "love" && e.active,
+      ),
+  );
+  await show.locator(".ms-offered-cards>button").click();
+  assert.equal(await pages[0].evaluate(() => window.lastInspection[1].ham), 10);
+  await pages[0]
+    .getByRole("button", { name: "Show off or trade a card" })
+    .click();
+  await pages[0].locator(".ms-picker-cards>button").first().click();
+  await pages[0]
+    .getByRole("button", { name: "POST TRADE · 1/3", exact: true })
+    .click();
+  await pages[0]
+    .getByText(/Single-card trade.*Collectors make an offer/)
+    .waitFor();
+  await pages[0]
+    .getByRole("button", { name: "CONFIRM SINGLE TRADE", exact: true })
+    .click();
+  const remove = pages[0]
+    .getByRole("button", { name: "Remove trade listing" })
+    .last();
+  await remove.click();
+  await pages[1].waitForFunction(() =>
+    window.ms.social.snapshot().entries.some((e) => e.withdrawn),
+  );
+  const removed = await pages[1].evaluate(() =>
+    window.ms.social.snapshot().entries.find((e) => e.withdrawn),
+  );
+  const denied = await pages[1].evaluate((p) => {
+    try {
+      window.ms.social.withdraw(p);
+      return false;
+    } catch {
+      return true;
+    }
+  }, removed);
+  assert(denied, "only the author withdraws");
+  await pages[0].waitForFunction(async () => {
+    try {
+      const r = await window.ms.multiplayer.request("/data/social/ms_test_0");
+      return r.record.data.entries.some((e) => e.withdrawn);
+    } catch {
+      return false;
+    }
+  });
+  await pages[0].evaluate(() => {
+    const { social, profile } = window.ms;
+    social.stop();
+    social.bind(profile);
+  });
+  await pages[0].waitForFunction(
+    () =>
+      window.ms.social.snapshot().entries.some((e) => e.withdrawn) &&
+      window.ms.social.snapshot().entries.some((e) => e.mode === "showcase"),
+  );
+
   await pages[0].getByRole("button", { name: /Offers/ }).click();
   await pages[0].getByRole("button", { name: "Review & accept" }).waitFor();
   assert(records.has("ms_test_0"));
@@ -267,6 +363,7 @@ try {
           await import("/src/services/persistence.ts");
         await import("/src/styles/app.css");
         await import("/src/styles/mini.css");
+        await import("/src/styles/mini-update.css");
         const profile = {
           playerId: "test_" + index,
           username: "test" + index,

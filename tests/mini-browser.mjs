@@ -5,6 +5,7 @@ import { chromium, launchOptions } from "./browser-support.mjs";
 const app = await createServer({ server: { host: "127.0.0.1", port: 8093 } });
 await app.listen();
 const browser = await chromium.launch(launchOptions);
+fs.mkdirSync("test-results", { recursive: true });
 const errors = [];
 const art = fs.readFileSync("tests/fixtures/card.webp");
 try {
@@ -34,7 +35,11 @@ try {
         url.includes("assets.tcgdex.net") ||
         url.includes("images.pokemontcg.io")
       )
-        return r.fulfill({ contentType: "image/webp", body: art });
+        return r.fulfill({
+          contentType: "image/webp",
+          body: art,
+          headers: { "access-control-allow-origin": "*" },
+        });
       return r.abort();
     });
     const p = await context.newPage();
@@ -46,7 +51,7 @@ try {
       .click();
     await p.getByRole("button", { name: /or tap to rip/ }).click();
     await p.getByRole("button", { name: "Reveal all", exact: true }).click();
-    await p.getByRole("button", { name: /BACK TO/ }).click();
+    await p.getByRole("button", { name: "Close completed pack" }).click();
     assert.equal(await p.locator(".mini-daily").count(), 0);
     await p
       .getByRole("navigation")
@@ -99,7 +104,7 @@ try {
     await p.locator(".binder-slot").first().click();
     await p.getByRole("button", { name: "FREE HAM GRADE · ONE ROLL" }).click();
     await p.getByText(/HAM 10 — PERFECT/).waitFor();
-    await p.getByRole("button", { name: "SELL CARD · MARKET OFFER" }).click();
+    await p.getByRole("button", { name: /SELL CARD · HAM 10/ }).click();
     await p
       .getByRole("button", { name: "CONFIRM SELL · 200 CREDITS" })
       .waitFor();

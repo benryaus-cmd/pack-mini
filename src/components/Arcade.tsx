@@ -6,7 +6,8 @@ import {
   ARCADE_STAKE,
   arcadeResult,
   playArcade,
-  startDrop,
+  startDropBatch,
+  dropBatchResult,
   settleDrop,
   type ArcadeKind,
   type ArcadeResult,
@@ -114,14 +115,24 @@ export function Arcade({ game, onStudy }: { game: Game; onStudy: () => void }) {
     };
   }, []);
   async function play(count = 1) {
-    if (lock.current || game.busy || spinning) return;
+    if (
+      lock.current ||
+      game.busy ||
+      spinning ||
+      (kind === "drop" && pending.length)
+    )
+      return;
     lock.current = true;
     setError("");
     if (kind === "drop") {
       setLaunching(true);
       try {
-        for (let i = 0; i < count; i++)
-          await game.update((save) => startDrop(save, generateId()));
+        await game.update((save) =>
+          startDropBatch(
+            save,
+            Array.from({ length: count }, () => generateId()),
+          ),
+        );
       } catch (e) {
         if (active.current) setError((e as Error).message);
       } finally {
@@ -153,6 +164,7 @@ export function Arcade({ game, onStudy }: { game: Game; onStudy: () => void }) {
       }
     }
   }
+  const batch = game.save ? dropBatchResult(game.save) : undefined;
   const displayed = !spinning && result?.kind === kind ? result : undefined;
   return (
     <div className="arcade-panel">
@@ -178,7 +190,7 @@ export function Arcade({ game, onStudy }: { game: Game; onStudy: () => void }) {
             key={tab}
             role="tab"
             aria-selected={kind === tab}
-            disabled={spinning}
+            disabled={spinning || launching || pending.length > 0}
             onClick={() => {
               setKind(tab);
               setError("");
@@ -280,7 +292,21 @@ export function Arcade({ game, onStudy }: { game: Game; onStudy: () => void }) {
           </div>
         )}
         <div className="arcade-result" role="status" aria-live="polite">
-          {displayed ? (
+          {kind === "drop" && batch ? (
+            <>
+              <span>
+                {batch.settled}/{batch.count} BALLS{" "}
+                {batch.settled === batch.count ? "COMPLETE" : "SETTLED"}
+              </span>
+              <b>PAYOUT {batch.payout} CREDITS</b>
+              <small>
+                Stake {batch.stake} ·{" "}
+                {batch.settled === batch.count
+                  ? `Net ${batch.net >= 0 ? "+" : ""}${batch.net} credits`
+                  : "Batch in progress…"}
+              </small>
+            </>
+          ) : displayed ? (
             <>
               PAYOUT <b>{displayed.payout} CREDITS</b>
               <small>
@@ -319,7 +345,7 @@ export function Arcade({ game, onStudy }: { game: Game; onStudy: () => void }) {
                 disabled={
                   launching ||
                   game.busy ||
-                  pending.length + count > 5 ||
+                  pending.length > 0 ||
                   game.save!.coins < ARCADE_STAKE * count
                 }
                 onClick={() => void play(count)}

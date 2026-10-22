@@ -1,3 +1,5 @@
+import { livePosts, reactions } from "../game/social";
+import { lockedTradeIds } from "../game/trading";
 import {
   useEffect,
   useLayoutEffect,
@@ -5,15 +7,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  Bell,
-  ChevronRight,
-  Link,
-  Send,
-  X,
-} from "lucide-react";
+import { SmilePlus, Bell, ChevronRight, Link, Send, X } from "lucide-react";
 import type { Game } from "../services/useGame";
 import type { Collector } from "../services/protocol";
 import { multiplayer } from "../services/multiplayer";
@@ -34,7 +28,7 @@ export function Social({
 }: {
   game: Game;
   initialTab?: string;
-  onInspect: (id: string) => void;
+  onInspect: (id: string, preview?: SocialCard) => void;
 }) {
   const network = useSyncExternalStore(
       multiplayer.subscribe,
@@ -60,13 +54,19 @@ export function Social({
       post?: SocialEntry;
       target?: string;
     } | null>(null),
-    [choice, setChoice] = useState<string[]>([]);
+    [choice, setChoice] = useState<string[]>([]),
+    [reacting, setReacting] = useState<string | null>(null),
+    [confirmPost, setConfirmPost] = useState(false);
   const log = useRef<HTMLDivElement>(null);
   const chatContent = useRef<HTMLDivElement>(null);
   const followingLatest = useRef(true);
   const badgeIds = earnedBadges(save, allCards);
-  const posts = state.entries.filter((e) => e.kind === "post"),
-    offers = state.entries.filter((e) => e.kind === "offer");
+  const posts = livePosts(state.entries),
+    offers = state.entries.filter(
+      (e) =>
+        e.kind === "offer" &&
+        posts.some((p) => p.id === e.parent && p.mode !== "showcase"),
+    );
   const incoming = offers.filter((e) => e.target === me && e.player !== me);
   useLayoutEffect(() => {
     if (tab === "lounge" && log.current) {
@@ -115,6 +115,7 @@ export function Social({
                 save.owned.some((o) => o.instanceId === c.instanceId)
                   ? c.instanceId
                   : c.cardId,
+                c,
               )
             }
           >
@@ -134,11 +135,13 @@ export function Social({
   }
   function openPicker(post?: SocialEntry, target?: string) {
     setChoice([]);
+    setConfirmPost(false);
     setPicker({ post, target });
   }
   function acceptOffer(e: SocialEntry) {
     const post = posts.find((p) => p.id === e.parent);
-    if (!post) throw Error("Original post is unavailable.");
+    if (!post || post.mode === "showcase")
+      throw Error("Original trade listing is withdrawn or unavailable.");
     if (!isHere(e.player)) throw Error("Both collectors must be online.");
     const prior = [
       post,
@@ -183,6 +186,34 @@ export function Social({
         </div>
       </div>
     );
+  }
+  async function submitCards(mode: "showcase" | "trade") {
+    await act(() => {
+      const cards: SocialCard[] = choice.map((id) => {
+        const c = save.owned.find((c) => c.instanceId === id);
+        if (!c)
+          throw Error("A selected copy is no longer owned. Select again.");
+        if (
+          mode === "trade" &&
+          (lockedTradeIds(save).has(id) ||
+            save.pending?.instances.includes(id) ||
+            save.queued.some((p) => p.instances.includes(id)))
+        )
+          throw Error(
+            "Finish this pack or confirmed trade before listing these copies.",
+          );
+        return {
+          instanceId: c.instanceId,
+          cardId: c.cardId,
+          finish: c.finish,
+          ham: c.ham,
+        };
+      });
+      if (picker?.post) social.offer(picker.post, cards, picker.target);
+      else social.post(cards, mode);
+      setPicker(null);
+      setConfirmPost(false);
+    });
   }
   const timeline = [
     ...network.messages.map((m) => ({
@@ -314,14 +345,17 @@ export function Social({
                 } catch {}
                 const card = save.owned.find((c) => c.instanceId === id);
                 if (!card) throw Error("Drop a card from your collection.");
-                social.post([
-                  {
-                    instanceId: card.instanceId,
-                    cardId: card.cardId,
-                    finish: card.finish,
-                    ham: card.ham,
-                  },
-                ]);
+                social.post(
+                  [
+                    {
+                      instanceId: card.instanceId,
+                      cardId: card.cardId,
+                      finish: card.finish,
+                      ham: card.ham,
+                    },
+                  ],
+                  "showcase",
+                );
               });
             }}
           >
@@ -329,7 +363,7 @@ export function Social({
               {!timeline.length && (
                 <p className="chat-empty">
                   {online
-                    ? "Say hello ♡ Drop a card here to offer a trade."
+                    ? "Say hello ♡ Show off a card or offer a trade."
                     : "Your room is reconnecting…"}
                 </p>
               )}
@@ -337,7 +371,10 @@ export function Social({
                 const player =
                     item.type === "chat" ? item.m.playerId : item.p.player,
                   who = current(player),
-                  fallback = item.type === "chat" ? item.m.name : "Collector";
+                  fallback =
+                    item.type === "chat"
+                      ? item.m.name
+                      : (item.p.name ?? "Collector");
                 return (
                   <div
                     className={`chat-message ${player === me ? "own" : ""}`}
@@ -348,7 +385,9 @@ export function Social({
                         who?.profile ?? {
                           nickName: fallback,
                           avatar:
-                            item.type === "chat" ? (item.m.avatar ?? "") : "",
+                            item.type === "chat"
+                              ? (item.m.avatar ?? "")
+                              : (item.p.avatar ?? ""),
                         }
                       }
                     />
@@ -369,60 +408,89 @@ export function Social({
                           })}
                         </time>
                       </strong>
-                      {item.type === "chat" ? (
-                        <p>{item.m.text}</p>
-                      ) : (
-                        <>
-                          <span className="ms-trade-label">
-                            Trade offer ·{" "}
-                            {isHere(player) ? "online" : "offline"}
-                          </span>
-                          {cardsFor(item.p)}
-                          {player !== me && (
-                            <button
-                              className="ms-offer-button"
-                              disabled={!isHere(player)}
-                              onClick={() => openPicker(item.p, player)}
-                            >
-                              Offer cards
-                            </button>
-                          )}
-                          <div className="ms-thread">
-                            {offers
-                              .filter((o) => o.parent === item.p.id)
-                              .slice(-8)
-                              .map(offerRow)}
-                          </div>
-                        </>
-                      )}
+                      <div className="ms-text-line">
+                        <button
+                          className="ms-react-add"
+                          aria-label="React to message"
+                          aria-expanded={reacting === item.id}
+                          onClick={() =>
+                            setReacting(reacting === item.id ? null : item.id)
+                          }
+                        >
+                          <SmilePlus size={14} />
+                        </button>
+                        {item.type === "chat" ? (
+                          <p>{item.m.text}</p>
+                        ) : (
+                          <>
+                            <span className="ms-trade-label">
+                              {item.p.mode === "showcase"
+                                ? "Showing off"
+                                : item.p.cards?.length === 1
+                                  ? "Single-card trade"
+                                  : `Trade bundle · ${item.p.cards?.length} cards together`}{" "}
+                              · {isHere(player) ? "online" : "offline"}
+                            </span>
+                            {cardsFor(item.p)}
+                            {item.p.mode !== "showcase" && player !== me && (
+                              <button
+                                className="ms-offer-button"
+                                disabled={!isHere(player)}
+                                onClick={() => openPicker(item.p, player)}
+                              >
+                                Offer cards
+                              </button>
+                            )}
+                            {player === me && item.p.mode !== "showcase" && (
+                              <button
+                                className="ms-withdraw"
+                                disabled={!online || busy}
+                                onClick={() =>
+                                  void act(() => social.withdraw(item.p))
+                                }
+                              >
+                                Remove trade listing
+                              </button>
+                            )}
+                            <div className="ms-thread">
+                              {offers
+                                .filter((o) => o.parent === item.p.id)
+                                .slice(-8)
+                                .map(offerRow)}
+                            </div>
+                          </>
+                        )}
+                      </div>
                       <span className="ms-reactions">
-                        {([1, -1] as const).map((v) => {
+                        {reactions.map((r) => {
                           const votes = state.entries.filter(
-                              (e) =>
-                                e.kind === "vote" &&
-                                e.message === item.id &&
-                                e.vote === v,
-                            ),
-                            mine = votes.some((e) => e.player === me);
+                            (e) =>
+                              e.kind === "reaction" &&
+                              e.message === item.id &&
+                              e.reaction === r.id &&
+                              e.active,
+                          );
+                          const mine = votes.some((e) => e.player === me);
+                          if (!votes.length && reacting !== item.id)
+                            return null;
                           return (
                             <button
-                              key={v}
-                              aria-label={`${v === 1 ? "Upvote" : "Downvote"} message`}
+                              key={r.id}
+                              aria-label={`${r.label} reaction`}
                               aria-pressed={mine}
-                              disabled={!online}
                               className={mine ? "active" : ""}
+                              disabled={!online || busy}
                               onClick={() =>
-                                void act(() =>
-                                  social.vote(item.id, mine ? 0 : v),
-                                )
+                                void act(() => {
+                                  social.react(item.id, r.id, !mine);
+                                  setReacting(null);
+                                })
                               }
                             >
-                              {v === 1 ? (
-                                <ArrowUp size={12} />
-                              ) : (
-                                <ArrowDown size={12} />
-                              )}{" "}
-                              {votes.length || ""}
+                              {r.emoji}
+                              {votes.length > 0 && (
+                                <small>{votes.length}</small>
+                              )}
                             </button>
                           );
                         })}
@@ -446,7 +514,7 @@ export function Social({
             <button
               type="button"
               className="icon-button ms-card-add"
-              aria-label="Post a card for trade"
+              aria-label="Show off or trade a card"
               disabled={!online || !save.owned.length}
               onClick={() => openPicker()}
             >
@@ -471,7 +539,17 @@ export function Social({
           {network.feed.length > 0 && (
             <div className="ms-pulls">
               {network.feed.map((f) => (
-                <button key={f.id} onClick={() => onInspect(f.cardId)}>
+                <button
+                  key={f.id}
+                  onClick={() =>
+                    onInspect(f.cardId, {
+                      instanceId: f.id,
+                      cardId: f.cardId,
+                      finish: f.finish ?? "gloss",
+                      ham: f.ham,
+                    })
+                  }
+                >
                   <CardView
                     card={cardById.get(f.cardId)}
                     finish={f.finish ?? "matte"}
@@ -633,7 +711,19 @@ export function Social({
           </div>
           <div className="profile-showcase">
             {selected.showcase.map((id, i) => (
-              <button key={id + i} onClick={() => onInspect(id)}>
+              <button
+                key={id + i}
+                onClick={() =>
+                  onInspect(id, {
+                    instanceId: "",
+                    cardId: id,
+                    finish:
+                      selected.showcaseCards?.[i]?.finish ??
+                      (cardById.get(id)?.holo ? "holo" : "gloss"),
+                    ham: selected.showcaseCards?.[i]?.ham,
+                  })
+                }
+              >
                 <CardView
                   card={cardById.get(id)}
                   finish={
@@ -671,7 +761,13 @@ export function Social({
             aria-label="Choose trade cards"
           >
             <div className="ms-picker-heading">
-              <b>{picker.post ? "Offer your cards" : "Post a card to chat"}</b>
+              <b>
+                {confirmPost
+                  ? "Confirm trade listing"
+                  : picker.post
+                    ? "Offer your cards"
+                    : "Show off or trade"}
+              </b>
               <button
                 aria-label="Close card picker"
                 onClick={() => setPicker(null)}
@@ -684,6 +780,7 @@ export function Social({
                 <button
                   key={c.instanceId}
                   className={choice.includes(c.instanceId) ? "selected" : ""}
+                  disabled={confirmPost}
                   onClick={() =>
                     setChoice((v) =>
                       v.includes(c.instanceId)
@@ -706,28 +803,50 @@ export function Social({
                 </button>
               ))}
             </div>
-            <button
-              className="primary full"
-              disabled={!choice.length || busy}
-              onClick={() =>
-                void act(() => {
-                  const cards: SocialCard[] = choice
-                    .map((id) => save.owned.find((c) => c.instanceId === id)!)
-                    .map(({ instanceId, cardId, finish, ham }) => ({
-                      instanceId,
-                      cardId,
-                      finish,
-                      ham,
-                    }));
-                  if (picker.post)
-                    social.offer(picker.post, cards, picker.target);
-                  else social.post(cards);
-                  setPicker(null);
-                })
-              }
-            >
-              {picker.post ? "Send offer" : "Post trade"} · {choice.length}/3
-            </button>
+            {confirmPost && (
+              <p className="trade-post-confirm">
+                {choice.length === 1
+                  ? "Single-card trade"
+                  : `Trade bundle · all ${choice.length} cards offered together`}
+                . Collectors make an offer, then both confirm the exact cards
+                before any exchange.
+              </p>
+            )}
+            <div className="ms-post-actions">
+              {!picker.post && !confirmPost && (
+                <button
+                  className="secondary"
+                  disabled={!choice.length || busy}
+                  onClick={() => void submitCards("showcase")}
+                >
+                  SHOW OFF
+                </button>
+              )}
+              <button
+                className="primary"
+                disabled={!choice.length || busy}
+                onClick={() => {
+                  if (picker.post || confirmPost) void submitCards("trade");
+                  else setConfirmPost(true);
+                }}
+              >
+                {picker.post
+                  ? "SEND OFFER"
+                  : confirmPost
+                    ? choice.length === 1
+                      ? "CONFIRM SINGLE TRADE"
+                      : `CONFIRM ${choice.length}-CARD BUNDLE`
+                    : `POST TRADE · ${choice.length}/3`}
+              </button>
+              {confirmPost && (
+                <button
+                  className="secondary"
+                  onClick={() => setConfirmPost(false)}
+                >
+                  BACK
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

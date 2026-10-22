@@ -1,11 +1,9 @@
-# Aippy PACK MINI import
+# Update the current PACK MINI Aippy project
 
-Create a separate PACK MINI Aippy project using the current PACKVERSE host as its starting copy. Use [the import prompt](updates/AIPPY-PROMPT-MINI-1.0.md) and the commit-pinned `updates/pack-mini-1.0.0.json` manifest.
+Use [the 1.1 update prompt](updates/AIPPY-PROMPT-MINI-1.1.md). The release manifest is `updates/pack-mini-1.1.0.json`: five host files and74 upstream files, full-snapshot replacement with exact SHA-256/byte validation.
 
-The host's `src/App.tsx` owns one root/loading boundary and the code-1234 temp-save file viewer. `src/games/importedGame/ImportedGame.tsx` renders only `./upstream/src/App.tsx`; its new Mini adapter removes automatic host theme music so PopTron remains opt-in. Existing SDK and Vite single-file plugins remain in place. Add `matter-js` to host dependencies.
+Prepare host replacements before Vite reads its config; then run the existing importer. Keep the current host's native SDK compatibility, file viewer, CSS scoping, single root, saved progress, game2 and mini-lobby. Use the prompt's immutable manifest URL and its source-commit baseUrl; the old1.0 manifest remains an archive.
 
-First download the manifest's five `hostFiles` with Node fetch during build preparation, before Vite reads its config. Then the normal Vite importer downloads and validates every `files` entry from `baseUrl + source`, stages, and promotes them into `src/games/importedGame/upstream/` using relative targets. Preserve all download bytes. The updated CSS plugin scopes all game stylesheets. Public sync copies fonts; card pictures stay on TCGdex.
+The runtime chain remains `src/main.tsx` → host `src/App.tsx` → `src/games/importedGame/ImportedGame.tsx` → `upstream/src/App.tsx`.
 
-Use game2 and mini-lobby. Mini saves/settings, social/showcase/trading records and collection leaderboard have their own namespaces. The source Pack-Opener/Aippy game can remain available as a separate project. The manifest's entry is upstream/src/App.tsx as rendered by the adapter; standalone main.tsx is a separate web bootstrap.
-
-Verify visible game, four packs, daily claim/reload, HAM grading and sale factors, badge loss warning, five-ball recovery, four-life retry, chat/current Aippy profile, and a two-player confirmed trade. Test Settings → temp save →1234. Report exact file download/replacement counts and actual build/loading result.
+`npm run import:manifest -- <source-commit>` builds the hash manifest from an exact committed source snapshot. Commit/push the source first, then publish its manifest and pin that manifest commit in the handover. Source-level validation is recorded in [the1.1 verification report](docs/MINI-1.1-VERIFICATION.md).

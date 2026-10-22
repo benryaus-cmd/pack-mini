@@ -6,7 +6,7 @@ const common = (): PackSlot => ({
   weighted: false,
 });
 const reverse = (): PackSlot => ({
-  name: "Prototype reverse finish",
+  name: "Reverse Holo",
   minTier: 0,
   maxTier: 2,
   weighted: false,
@@ -85,6 +85,12 @@ export function slotPool(slot: PackSlot, set: SetDefinition) {
   const exact = set.cards.filter(
     (c) => c.tier >= slot.minTier && c.tier <= slot.maxTier,
   );
+  if (slot.reverse) {
+    const supported = exact.filter((c) => c.variants?.reverse);
+    if (supported.length) return supported;
+    const alternatives = set.cards.filter((c) => c.variants?.reverse);
+    if (alternatives.length) return alternatives;
+  }
   if (exact.length) return exact;
   return slot.minTier >= 2 ? set.cards.filter((c) => c.tier >= 2) : set.cards;
 }

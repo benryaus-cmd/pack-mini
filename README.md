@@ -6,17 +6,29 @@ Collect distinct TCGdex artwork featuring Charizard, Pikachu, Mewtwo, Bulbasaur,
 
 ## Play
 
-- Four five-card pools: All Stars **1,000 credits**, English Club **1,200**, Japan Club **1,500**, First Friends **800**. One rare+ per pack. Tap pack → confirm buy. Daily free pack hero disappears after its claim.
+- Four five-card pools: First Friends **800 credits**, All Stars **1,000**, Japan Club **1,500**, Holo Club **2,000** (all five cards holo). One rare+ per pack. Tap pack → confirm buy. Daily free pack hero disappears after its claim.
 - Start with **5,000 credits**. Daily reward **1,000**, memory win **250**. Missions, milestones and level rewards use the tenfold economy.
 - HAM grading: one free roll per instance. HAM7 35%, HAM8 35%, HAM9 25%, HAM10 5%. Grades travel with trades. This is a game rating.
 - Sell at a market reference ×100 credits per USD ×HAM factor: **ungraded .50 / HAM7 .30 / HAM8 .70 / HAM9 1.00 / HAM10 2.00**. A $1 reference returns50 ungraded,30/70/100/200 graded. Quotes are shown before confirmation; badge-loss warnings cover last copies. Alternate finishes and same-art printings provide labeled reference fallbacks; EUR-only references require an available USD FX rate. Missing references remain unavailable rather than invented.
 - Four-life, retryable 4×3 memory; sequentially spinning reel strips; up to five Matter.js pegboard balls with persisted charges and deterministic recovery.
-- Chat opens at latest messages. Like/dislike, post cards, reply with threaded offers, use the global Offers bell, then mutually confirm a live trade. Foil and grade markers show across owned-card surfaces.
+- Chat opens at latest messages. React with 👍 😮 ❤️ 😢, show off graded cards or confirm single/bundle trade listings, remove your listings, reply with threaded offers, use the global Offers bell, then mutually confirm a live trade. Foil and grade markers show across owned-card surfaces.
 - SomaFM **PopTron**, as used by Fidget, is off each session and starts from the top-bar button. Physical paper/foil foley accompanies tearing, crinkling and flipping.
+
+## 1.1 card experience
+
+Drag within the card to catch gloss/foil light. Drag at least 34% of the screen width (minimum 100px) left to advance or right to grade; the edge glows and the release action appears only when armed. Grading stays on the current card. Close a completed five-column summary to finish its pack.
+
+Reverse Holos replaces the English binder. Holo/Reverse binder progress requires the owned finish; printed rarity stays separate. Ordinary saved `matte` cards retain their IDs and values while displaying gloss. Exact representative-print variants come from the pinned TCGdex source in `docs/MINI-FINISH-AUDIT.json`; scans are shared per printing, with masked foil distinguishing treatments. Missing variant metadata stays conservative. Existing inventories/grades and unfinished English packs remain valid.
+
+Binder controls stay at the top, more art loads on scroll, and VALUE sorts owned cards by USD market reference (unpriced cards last). Slots show the best copy: HAM10 > HAM9 > HAM8 > ungraded > HAM7. Open it to select the exact copy/finish before grading or selling; the confirmation identifies its grade, finish and instance suffix.
+
+A short startup screen warms all low-resolution scans into a persistent cache with six workers and one retry. After 4.5s the game is usable while remaining scans continue; network/cache failures preserve normal image fallbacks. High-resolution scans load progressively when enlarged. Big-hit history shows the latest five still-owned cards valued at US$10+, with reveal celebrations at $10/$50/$100/$500. EUR values use an available real exchange rate before entering dollar thresholds; unknown values do not receive invented valuations.
+
+Coin Drop locks one 1–5-ball batch until all settle and retains its aggregate stake/payout/net across reload. Social showoffs persist in bounded server history rather than expiring as trade invitations. Withdrawals retain compact removal records independently of rolling messages, with retired-history cutoffs preserving known active posts. Completed/confirmed trades continue to use their existing immutable instance/digest checks.
 
 ## Run and verify
 
-Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`. `CHROMIUM_PATH` selects an installed browser.
+Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`, `npm run test:update`, `npm run test:arcade`. `CHROMIUM_PATH` selects an installed browser.
 
 See [Aippy import](AIPPY-IMPORT.md), [catalogue audit](docs/MINI-CATALOGUE-AUDIT.json), [credits](ASSET-CREDITS.md) and [verification](docs/MINI-VERIFICATION.md).
 

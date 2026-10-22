@@ -1,3 +1,5 @@
+import { gradeCard } from "../game/grading";
+import { cardLabel, finishLabel } from "../game/finishes";
 import { generateId } from "../game/uuid";
 import { productById, productCost } from "../game/products";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +29,7 @@ import {
 import { audio, haptic } from "../services/audio";
 import { multiplayer } from "../services/multiplayer";
 import { preloadCard } from "../services/cardAssets";
-import { formatCardPrice, useCardPrice } from "../services/pricing";
+import { priceUsd, formatCardPrice, useCardPrice } from "../services/pricing";
 import { CardView, CardPrice } from "./CardView";
 import { BoosterPack } from "./BoosterPack";
 export function Opening({
@@ -67,14 +69,37 @@ export function Opening({
   const [artLoading, setArtLoading] = useState(false);
   const [deckReady, setDeckReady] = useState(opening.phase !== "reveal");
   const actionLock = useRef(false);
+  const [armed, setArmed] = useState<"next" | "grade" | null>(null);
+  const [usd, setUsd] = useState<number | null>(null);
   const swipe = useRef<{ x: number; y: number } | null>(null);
   const suppressClick = useRef(false);
   const { price } = useCardPrice(card?.id, own?.finish);
+  useEffect(() => {
+    let alive = true;
+    setUsd(null);
+    if (price)
+      void priceUsd(price).then((n) => {
+        if (alive) setUsd(n);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [price]);
+  const wow =
+    usd !== null && usd >= 500
+      ? "FUCKING AMAZING!"
+      : usd !== null && usd >= 100
+        ? "ABSOLUTE BANGER!"
+        : usd !== null && usd >= 50
+          ? "MASSIVE HIT!"
+          : usd !== null && usd >= 10
+            ? "NOT BAD AT ALL!"
+            : "";
   const spectacular = Boolean(
     own &&
     (own.tier >= 3 ||
       ["holo", "textured", "rainbow", "gold"].includes(own.finish) ||
-      (price?.amount ?? 0) >= 50),
+      (usd ?? 0) >= 10),
   );
   const repeatProduct = productById(
     opening.productId === "daily" ? "standard" : opening.productId,
@@ -304,9 +329,41 @@ export function Opening({
       actionLock.current = false;
     }
   }
+  async function gradeCurrent() {
+    if (!flipped || busy || actionLock.current) return;
+    if (own.ham) {
+      setGestureNotice(`Already graded · HAM ${own.ham}`);
+      return;
+    }
+    actionLock.current = true;
+    const id = own.instanceId,
+      expected = opening.id,
+      cursor = opening.cursor;
+    try {
+      const saved = await update((s) =>
+        s.pending?.id === expected &&
+        s.pending.cursor === cursor &&
+        s.pending.instances[cursor] === id
+          ? gradeCard(s, id)
+          : s,
+      );
+      const ham = saved.owned.find((c) => c.instanceId === id)?.ham;
+      if (ham) {
+        setGestureNotice(
+          ham === 10 ? "✦ HAM 10 — PERFECT!" : `HAM ${ham} · graded and locked`,
+        );
+        audio.play(ham === 10 ? "epic" : "rare");
+        haptic(ham === 10 ? [40, 30, 80] : [15, 20, 25], settings.haptics);
+      }
+    } catch (e) {
+      setGestureNotice((e as Error).message);
+    } finally {
+      actionLock.current = false;
+    }
+  }
   return (
     <div
-      className={`opening immersive phase-${opening.phase} tier-${own?.tier ?? 2} ${spectacular && flipped ? "spectacular-pull" : ""} ${reduceMotion ? "motion-reduced" : ""}`}
+      className={`opening immersive ${armed ? "armed-" + armed : ""} phase-${opening.phase} tier-${own?.tier ?? 2} ${spectacular && flipped ? "spectacular-pull" : ""} ${reduceMotion ? "motion-reduced" : ""}`}
       ref={stage}
     >
       <div className="opening-top">
@@ -318,8 +375,17 @@ export function Opening({
         </span>
         <button
           className="icon-button"
-          aria-label="Save and leave opening"
-          onClick={() => onExit()}
+          aria-label={
+            opening.phase === "summary"
+              ? "Close completed pack"
+              : "Save and leave opening"
+          }
+          disabled={busy}
+          onClick={() =>
+            opening.phase === "summary"
+              ? void complete().catch(() => {})
+              : onExit()
+          }
         >
           <X size={18} />
         </button>
@@ -400,7 +466,12 @@ export function Opening({
         <>
           <div className="reveal-heading">
             <span className="eyebrow">
-              {flipped ? tierNames[own.tier].toUpperCase() : "FEELING LUCKY?"}
+              {flipped && card
+                ? cardLabel(card, own.finish).toUpperCase()
+                : "FEELING LUCKY?"}
+              {flipped && card && (
+                <CardPrice cardId={card.id} finish={own.finish} compact />
+              )}
             </span>
             <h2>{flipped ? card?.name : "Something extraordinary?"}</h2>
             <div className="reveal-dots">
@@ -414,31 +485,84 @@ export function Opening({
           </div>
           <div
             className="reveal-stage"
+            onClick={() => {
+              if (suppressClick.current) {
+                suppressClick.current = false;
+                return;
+              }
+              if (!flipped) void next().catch(() => {});
+            }}
             onPointerDown={(e) => {
+              if (e.isPrimary === false) return;
               swipe.current = { x: e.clientX, y: e.clientY };
               suppressClick.current = false;
+              const surface =
+                e.currentTarget.querySelector<HTMLElement>(
+                  ".revealed-card .card-view",
+                ) ?? e.currentTarget;
+              surface.setPointerCapture(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              if (!swipe.current) return;
+              const dx = e.clientX - swipe.current.x,
+                dy = e.clientY - swipe.current.y;
+              if (Math.hypot(dx, dy) > 9) suppressClick.current = true;
+              const threshold = Math.max(
+                100,
+                e.currentTarget.clientWidth * 0.34,
+              );
+              setArmed(
+                Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.5
+                  ? dx < 0
+                    ? "next"
+                    : flipped
+                      ? "grade"
+                      : null
+                  : null,
+              );
             }}
             onPointerUp={(e) => {
               const start = swipe.current;
               swipe.current = null;
+              setArmed(null);
               if (!start) return;
               const dx = e.clientX - start.x,
                 dy = e.clientY - start.y;
-              if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.3)
+              if (Math.hypot(dx, dy) > 9) suppressClick.current = true;
+              const threshold = Math.max(
+                100,
+                e.currentTarget.clientWidth * 0.34,
+              );
+              if (
+                Math.abs(dx) < threshold ||
+                Math.abs(dx) <= Math.abs(dy) * 1.5
+              )
                 return;
-              suppressClick.current = true;
               if (dx < 0) void next().catch(() => {});
-              else if (flipped) void addToShowcase();
-              else
-                setGestureNotice(
-                  "Reveal your card first, then swipe right to showcase",
-                );
+              else if (flipped) void gradeCurrent();
             }}
             onPointerCancel={() => {
               swipe.current = null;
+              setArmed(null);
+              suppressClick.current = true;
+            }}
+            onLostPointerCapture={() => {
+              swipe.current = null;
+              setArmed(null);
             }}
           >
             <div className="reveal-halo" />
+            <div className="swipe-edge swipe-edge-left" />
+            <div className="swipe-edge swipe-edge-right" />
+            {armed && (
+              <div className="swipe-armed" role="status">
+                {armed === "next"
+                  ? "← Release for next card"
+                  : own.ham
+                    ? `HAM ${own.ham} · already graded`
+                    : "Release to grade card →"}
+              </div>
+            )}
             {[2, 1].map((i) => (
               <div className={`stack-layer layer-${i}`} key={i}>
                 <CardView back />
@@ -452,13 +576,6 @@ export function Opening({
                 back={!flipped}
                 interactive={flipped && !reduceMotion}
                 large
-                onClick={() => {
-                  if (suppressClick.current) {
-                    suppressClick.current = false;
-                    return;
-                  }
-                  void next().catch(() => {});
-                }}
               />
             </div>
             {particles && !reduceMotion && (
@@ -484,56 +601,56 @@ export function Opening({
             )}
           </div>
           <div className="opening-controls">
-            {flipped && card && (
-              <CardPrice cardId={card.id} finish={own.finish} ham={own.ham} />
+            {flipped && wow && (
+              <span
+                className={`celebration-label wow-${usd! >= 500 ? 4 : usd! >= 100 ? 3 : usd! >= 50 ? 2 : 1}`}
+              >
+                ✦ {wow}
+              </span>
             )}
-            {flipped && spectacular && (
-              <span className="celebration-label">
-                ✦{" "}
-                {price && price.amount >= 50
-                  ? `BIG DISCOVERY · ${formatCardPrice(price)} REFERENCE`
-                  : own.tier >= 5
-                    ? "EXTRAORDINARY DISCOVERY"
-                    : own.finish !== "matte" && own.finish !== "gloss"
-                      ? "A LITTLE EXTRA SHIMMER"
-                      : "RARE DISCOVERY"}
+            {flipped && own.ham && (
+              <span className={`opening-grade ham-${own.ham}`}>
+                HAM {own.ham}
+                {own.ham === 10 ? " · PERFECT!" : ""}
               </span>
             )}
             <span className="swipe-instruction">
               {flipped
-                ? "← Swipe for next · Swipe right to showcase →"
+                ? "← Drag far for next · Drag far right to grade →"
                 : "Tap to reveal your card"}
             </span>
             <span className="card-index">
               {opening.cursor + 1} / {cards.length} ·{" "}
               {flipped
-                ? own.finish.toUpperCase() + " FINISH"
+                ? finishLabel(own.finish).toUpperCase()
                 : "TAP THE CARD TO FLIP"}
             </span>
-            <button
-              className="primary"
-              onClick={() => void next().catch(() => {})}
-              disabled={busy || artLoading || !deckReady}
-            >
-              {artLoading
-                ? "LOADING ARTWORK…"
-                : flipped
-                  ? "NEXT CARD"
-                  : "REVEAL CARD"}{" "}
-              <ArrowRight size={18} />
-            </button>
-            {flipped && (
+            <div className="opening-action-row">
               <button
-                className="secondary showcase-card-action"
-                disabled={busy}
-                onClick={() => void addToShowcase()}
+                className="primary"
+                onClick={() => void next().catch(() => {})}
+                disabled={busy || artLoading || !deckReady}
               >
-                <Sparkles size={14} />{" "}
-                {save!.showcase.includes(own.instanceId)
-                  ? "IN SHOWCASE"
-                  : "ADD TO SHOWCASE"}
+                {artLoading
+                  ? "LOADING ARTWORK…"
+                  : flipped
+                    ? "NEXT CARD"
+                    : "REVEAL CARD"}{" "}
+                <ArrowRight size={18} />
               </button>
-            )}
+              {flipped && (
+                <button
+                  className="secondary showcase-card-action"
+                  disabled={busy}
+                  onClick={() => void addToShowcase()}
+                >
+                  <Sparkles size={14} />{" "}
+                  {save!.showcase.includes(own.instanceId)
+                    ? "IN SHOWCASE"
+                    : "ADD TO SHOWCASE"}
+                </button>
+              )}
+            </div>
             <button
               className="text-button"
               onClick={() =>
@@ -587,7 +704,7 @@ export function Opening({
                 />
                 <span>{cardById.get(c.cardId)?.name}</span>
                 <small className={`rarity tier-${c.tier}`}>
-                  {tierNames[c.tier]}
+                  {finishLabel(c.finish)}
                 </small>
                 {opening.newIds.includes(c.instanceId) ? (
                   <b>NEW</b>
@@ -641,13 +758,6 @@ export function Opening({
               </button>
             </div>
             {shareNotice && <small role="status">{shareNotice}</small>}
-            <button
-              className="text-button"
-              disabled={busy}
-              onClick={() => void complete().catch(() => {})}
-            >
-              BACK TO THE UNIVERSE <ArrowRight size={14} />
-            </button>
           </div>
         </>
       )}

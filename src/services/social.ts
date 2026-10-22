@@ -4,33 +4,19 @@ import { multiplayer, ApiError } from "./multiplayer";
 import { recordLimit } from "./protocol";
 import type { OwnedCard, Profile } from "../game/types";
 import { cardById } from "../game/catalogue";
-export type SocialCard = Pick<
-  OwnedCard,
-  "instanceId" | "cardId" | "finish" | "ham"
->;
-export type SocialEntry = {
-  id: string;
-  player: string;
-  at: number;
-  room: string;
-  kind: "vote" | "post" | "offer";
-  message?: string;
-  vote?: 1 | -1 | 0;
-  parent?: string;
-  target?: string;
-  cards?: SocialCard[];
-};
+import {
+  mergeSocial,
+  retainSocial,
+  livePosts,
+  reactions,
+  type SocialEntry,
+  type SocialCard,
+  type Reaction,
+} from "../game/social";
+export { mergeSocial };
+export type { SocialEntry, SocialCard };
 type State = { entries: SocialEntry[] };
-const MAX = 24;
-export function mergeSocial(a: SocialEntry[], b: SocialEntry[]) {
-  const by = new Map<string, SocialEntry>();
-  for (const e of [...a, ...b]) {
-    const key = e.kind === "vote" ? `v:${e.player}:${e.message}` : e.id;
-    const old = by.get(key);
-    if (!old || old.at <= e.at) by.set(key, e);
-  }
-  return [...by.values()].sort((a, b) => a.at - b.at).slice(-400);
-}
+const MAX = 48;
 function valid(e: any, player: string, room: string): e is SocialEntry {
   return (
     !!e &&
@@ -39,33 +25,56 @@ function valid(e: any, player: string, room: string): e is SocialEntry {
     typeof e.id === "string" &&
     e.id.length <= 80 &&
     Number.isFinite(e.at) &&
-    ["vote", "post", "offer"].includes(e.kind) &&
-    (e.kind === "vote"
-      ? typeof e.message === "string" &&
-        e.message.length <= 80 &&
-        [-1, 0, 1].includes(e.vote)
-      : Array.isArray(e.cards) &&
-        e.cards.length > 0 &&
-        e.cards.length <= 3 &&
-        e.cards.every(
-          (c: any) =>
-            c &&
-            typeof c.instanceId === "string" &&
-            c.instanceId.length <= 64 &&
-            cardById.has(c.cardId) &&
-            (c.ham === undefined || [7, 8, 9, 10].includes(c.ham)) &&
-            [
-              "matte",
-              "gloss",
-              "reverse",
-              "holo",
-              "textured",
-              "rainbow",
-              "gold",
-            ].includes(c.finish),
-        ) &&
-        (e.kind !== "offer" ||
-          (typeof e.parent === "string" && typeof e.target === "string")))
+    (e.name === undefined ||
+      (typeof e.name === "string" && e.name.length <= 80)) &&
+    (e.avatar === undefined ||
+      (typeof e.avatar === "string" && e.avatar.length <= 2048)) &&
+    ["vote", "post", "offer", "reaction", "retire"].includes(e.kind) &&
+    (e.kind === "retire"
+      ? Number.isFinite(e.before) &&
+        e.before >= 0 &&
+        (e.keep === undefined ||
+          (Array.isArray(e.keep) &&
+            e.keep.length <= 400 &&
+            e.keep.every(
+              (id: unknown) => typeof id === "string" && id.length <= 80,
+            )))
+      : e.kind === "post" && e.withdrawn === true
+        ? true
+        : e.kind === "vote"
+          ? typeof e.message === "string" &&
+            e.message.length <= 80 &&
+            [-1, 0, 1].includes(e.vote)
+          : e.kind === "reaction"
+            ? typeof e.message === "string" &&
+              e.message.length <= 80 &&
+              reactions.some((r) => r.id === e.reaction) &&
+              typeof e.active === "boolean"
+            : (e.mode === undefined ||
+                ["trade", "showcase"].includes(e.mode)) &&
+              (e.withdrawn === undefined || typeof e.withdrawn === "boolean") &&
+              Array.isArray(e.cards) &&
+              e.cards.length > 0 &&
+              e.cards.length <= 3 &&
+              e.cards.every(
+                (c: any) =>
+                  c &&
+                  typeof c.instanceId === "string" &&
+                  c.instanceId.length <= 64 &&
+                  cardById.has(c.cardId) &&
+                  (c.ham === undefined || [7, 8, 9, 10].includes(c.ham)) &&
+                  [
+                    "matte",
+                    "gloss",
+                    "reverse",
+                    "holo",
+                    "textured",
+                    "rainbow",
+                    "gold",
+                  ].includes(c.finish),
+              ) &&
+              (e.kind !== "offer" ||
+                (typeof e.parent === "string" && typeof e.target === "string")))
   );
 }
 class SocialService {
@@ -176,7 +185,7 @@ class SocialService {
         );
         this.merge(entries);
         if (d.player === this.profile?.playerId) {
-          this.mine = mergeSocial(this.mine, entries).slice(-MAX);
+          this.mine = retainSocial(mergeSocial(this.mine, entries), MAX);
           this.revision = record.revision ?? 0;
         }
       }
@@ -184,20 +193,31 @@ class SocialService {
       /* Best-effort history; live relay continues. */
     }
   }
-  private emit(entry: Omit<SocialEntry, "player" | "room" | "id" | "at">) {
+  private emit(
+    entry: Omit<SocialEntry, "player" | "room" | "id" | "at">,
+    replaceId?: string,
+  ) {
     if (!this.profile || multiplayer.snapshot().status !== "online")
       throw Error("Connect to the room first.");
     const e: SocialEntry = {
       ...entry,
-      id: crypto.randomUUID().replaceAll("-", "").slice(0, 20),
+      id: replaceId ?? crypto.randomUUID().replaceAll("-", "").slice(0, 20),
       player: this.profile.playerId,
+      name: this.profile.nickName,
+      avatar: this.profile.avatar,
       room: this.room,
       at: Math.max(Date.now(), ...this.mine.map((x) => x.at + 1)),
     };
     if (!multiplayer.send("mini-social", e))
       throw Error("Connection is busy. Try again.");
-    this.mine = mergeSocial(this.mine, [e]).slice(-MAX);
+    this.mine = retainSocial(mergeSocial(this.mine, [e]), MAX);
     this.merge([e]);
+    // Only this author compacts its history. Receivers cannot infer cutoffs
+    // from partial packets without accidentally hiding delayed live posts.
+    for (const floor of this.mine.filter((x) => x.kind === "retire")) {
+      this.merge([floor]);
+      multiplayer.send("mini-social", floor);
+    }
     const epoch = this.scope;
     this.writes = this.writes.catch(() => {}).then(() => this.persist(epoch));
     void this.writes.catch(() => {});
@@ -206,10 +226,41 @@ class SocialService {
   vote(message: string, vote: 1 | -1 | 0) {
     return this.emit({ kind: "vote", message, vote });
   }
-  post(cards: SocialCard[]) {
-    return this.emit({ kind: "post", cards: cards.slice(0, 3) });
+  react(message: string, reaction: Reaction, active: boolean) {
+    return this.emit({ kind: "reaction", message, reaction, active });
+  }
+  post(cards: SocialCard[], mode: "trade" | "showcase" = "trade") {
+    if (
+      !cards.length ||
+      cards.length > 3 ||
+      new Set(cards.map((c) => c.instanceId)).size !== cards.length
+    )
+      throw Error("Choose one to three different cards");
+    return this.emit({ kind: "post", mode, cards });
+  }
+  withdraw(post: SocialEntry) {
+    const current = this.state.entries.find(
+      (e) =>
+        e.kind === "post" &&
+        e.id === post.id &&
+        e.player === this.profile?.playerId,
+    );
+    if (!current || current.withdrawn || current.mode === "showcase")
+      throw Error("This trade listing is unavailable");
+    return this.emit({ kind: "post", withdrawn: true }, current.id);
   }
   offer(parent: SocialEntry, cards: SocialCard[], target = parent.player) {
+    const root = this.state.entries.find(
+      (e) =>
+        e.kind === "post" &&
+        e.id === (parent.kind === "post" ? parent.id : parent.parent),
+    );
+    if (
+      !root ||
+      !livePosts(this.state.entries).includes(root) ||
+      root.mode === "showcase"
+    )
+      throw Error("Trade listing withdrawn or unavailable");
     const peers = Object.values(multiplayer.snapshot().peers);
     if (!peers.some((p) => p.profile.playerId === target))
       throw Error("Both collectors must be online to offer.");
@@ -231,7 +282,7 @@ class SocialService {
       revision = r.record?.revision ?? 0;
       const d = r.record?.data;
       if (d?.player === player && d.room === room)
-        this.mine = mergeSocial(d.entries ?? [], this.mine).slice(-MAX);
+        this.mine = retainSocial(mergeSocial(d.entries ?? [], this.mine), MAX);
     } catch (e) {
       if (!(e instanceof ApiError) || e.status !== 404) throw e;
     }
@@ -243,7 +294,13 @@ class SocialService {
       entries.length &&
       new TextEncoder().encode(JSON.stringify(data)).length > budget
     )
-      entries.shift();
+      entries.splice(
+        Math.max(
+          0,
+          entries.findIndex((e) => !e.withdrawn && e.kind !== "retire"),
+        ),
+        1,
+      );
     if (!entries.length) return;
     const r = await multiplayer.request("/data/social/" + id, {
       method: "PUT",

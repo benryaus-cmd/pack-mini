@@ -1,0 +1,10 @@
+{
+  "source": "https://github.com/tcgdex/cards-database",
+  "sourceCommit": "cbddf7e54033b1b58e44af1049c88832e55b94d0",
+  "cards": 662,
+  "explicit": 492,
+  "fallback": 170,
+  "missing": [],
+  "separateFinishImages": 0,
+  "note": "TCGdex supplies a shared scan for each printing. Finish-specific images are not fabricated. Render holo/reverse masks over that exact scan; optional finishImages supports separately verified assets."
+}

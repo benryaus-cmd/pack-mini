@@ -123,3 +123,40 @@ export function arcadeResult(save: Save, id: string): ArcadeResult | undefined {
       ArcadeLedgerEntry | undefined
   )?.arcade;
 }
+
+/** One persisted batch is one play, even when its balls settle out of order. */
+export function startDropBatch(
+  save: Save,
+  ids: string[],
+  now = Date.now(),
+  rng = Math.random,
+): Save {
+  if (save.pendingDrops?.length)
+    throw Error("Finish this batch before playing again");
+  if (!ids.length || ids.length > 5 || new Set(ids).size !== ids.length)
+    throw Error("Choose one to five different balls");
+  ids.forEach(validateId);
+  if (ids.some((id) => save.purchaseIds.includes(prefix + id)))
+    throw Error("Batch already played");
+  if (save.coins < ids.length * ARCADE_STAKE) throw Error("Not enough credits");
+  let next = save;
+  for (const id of ids) next = startDrop(next, id, now, rng);
+  return { ...next, dropBatch: { ids: [...ids], startedAt: now } };
+}
+export function dropBatchResult(save: Save) {
+  // Older saves still resume their individually charged pending balls.
+  const ids = save.dropBatch?.ids ?? save.pendingDrops?.map((b) => b.id) ?? [];
+  if (!ids.length) return undefined;
+  const results = ids
+    .map((id) => arcadeResult(save, id))
+    .filter((r): r is ArcadeResult => !!r);
+  const payout = results.reduce((n, r) => n + r.payout, 0);
+  const stake = ids.length * ARCADE_STAKE;
+  return {
+    count: ids.length,
+    settled: results.length,
+    payout,
+    stake,
+    net: payout - stake,
+  };
+}

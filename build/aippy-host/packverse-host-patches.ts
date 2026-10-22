@@ -13,6 +13,6 @@ export async function applyPackverseHostPatches(
     if (
       !(await readFile(path.join(upstreamRoot, file), "utf8")).includes(marker)
     )
-      throw Error(`PACK MINI 1.0 host integration missing in ${file}`);
+      throw Error(`PACK MINI 1.1 host integration missing in ${file}`);
   }
 }

@@ -58,7 +58,12 @@ try {
     .evaluateAll((elements) =>
       elements.map((element) => getComputedStyle(element).transform),
     );
-  await page.waitForTimeout(150);
+  await page.waitForFunction((before) => {
+    const after = [...document.querySelectorAll(".arcade-strip")].map(
+      (e) => getComputedStyle(e).transform,
+    );
+    return JSON.stringify(after) !== JSON.stringify(before);
+  }, before);
   const after = await page
     .locator(".arcade-strip")
     .evaluateAll((elements) =>
@@ -124,7 +129,10 @@ try {
   );
   assert.equal(launched.pendingDrops.length, 5);
   const ballY = await page.locator(".arcade-ball").first().getAttribute("cy");
-  await page.waitForTimeout(150);
+  await page.waitForFunction(
+    (y) => document.querySelector(".arcade-ball")?.getAttribute("cy") !== y,
+    ballY,
+  );
   assert.notEqual(
     await page.locator(".arcade-ball").first().getAttribute("cy"),
     ballY,
@@ -135,11 +143,25 @@ try {
     "A sixth simultaneous ball must be blocked",
   );
   fs.mkdirSync("test-results", { recursive: true });
-  await page.screenshot({ path: "test-results/arcade-physics-five.png" });
 
+  // Start a separate recovery fixture with the arcade closed: slow automation
+  // round-trips must not let every live ball finish before the reload occurs.
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  const recoveryLaunch = await page.evaluate(async (initial) => {
+    const { transact } = await import("/src/services/persistence.ts");
+    const { startDropBatch } = await import("/src/game/arcade.ts");
+    return transact(localStorage.getItem("packmini-browser-id"), () =>
+      startDropBatch(initial, [
+        "recovery-a",
+        "recovery-b",
+        "recovery-c",
+        "recovery-d",
+        "recovery-e",
+      ]),
+    );
+  }, initial);
   await page.reload();
-  await openArcade(page);
-  await page.getByRole("tab", { name: "COIN DROP" }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).waitFor();
   const restored = await readSave(page);
   assert(
     restored.pendingDrops.length > 0,
@@ -147,15 +169,18 @@ try {
   );
   assert.equal(
     restored.coins,
-    launched.coins,
+    recoveryLaunch.coins,
     "Reload must not charge a pending ball again",
   );
+  await openArcade(page);
+  await page.getByRole("tab", { name: "COIN DROP" }).click();
   await page.waitForFunction(
     () =>
       document.querySelector(".arcade-live")?.textContent?.startsWith("0 / 5"),
     undefined,
     { timeout: 30000 },
   );
+  await page.getByText("5/5 BALLS COMPLETE").waitFor();
   const settled = await readSave(page);
   const entries = settled.ledger.filter(
     (entry) => entry.arcade?.kind === "drop",
@@ -167,6 +192,15 @@ try {
   );
   assert.equal(new Set(entries.map((entry) => entry.id)).size, 5);
   assert(entries.every((entry) => [0, 80, 120].includes(entry.arcade.payout)));
+  const total = entries.reduce((n, e) => n + e.arcade.payout, 0);
+  const resultText = await page.locator(".arcade-result").innerText();
+  assert(resultText.includes(`PAYOUT ${total} CREDITS`));
+  assert(resultText.includes(`Stake 250`));
+  assert(
+    resultText.includes(
+      `Net ${total - 250 >= 0 ? "+" : ""}${total - 250} credits`,
+    ),
+  );
   assert.equal(
     settled.coins,
     initial.coins -
@@ -182,6 +216,28 @@ try {
     settled.coins,
     "A second reload must never grant a second payout",
   );
+  await page.getByRole("button", { name: "3 BALLS 150 credits" }).click();
+  assert(
+    await page.getByRole("button", { name: "1 BALL 50 credits" }).isDisabled(),
+    "the entire three-ball batch locks new launches",
+  );
+  await page.getByText("3/3 BALLS COMPLETE").waitFor({ timeout: 30000 });
+  const batch = await page.evaluate(async () => {
+    const { loadSave } = await import("/src/services/persistence.ts");
+    const { dropBatchResult } = await import("/src/game/arcade.ts");
+    return dropBatchResult(
+      await loadSave(localStorage.getItem("packmini-browser-id")),
+    );
+  });
+  assert.equal(batch.stake, 150);
+  assert.equal(batch.count, 3);
+  assert.equal(batch.settled, 3);
+  const batchText = await page.locator(".arcade-result").innerText();
+  assert(batchText.includes(`PAYOUT ${batch.payout} CREDITS`));
+  assert(
+    batchText.includes(`Net ${batch.net >= 0 ? "+" : ""}${batch.net} credits`),
+  );
+  await page.screenshot({ path: "test-results/arcade-batch-complete.png" });
   assert.deepEqual(errors, [], "The arcade must not throw browser errors");
   console.log(
     JSON.stringify({

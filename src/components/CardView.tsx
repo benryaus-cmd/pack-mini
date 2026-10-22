@@ -3,6 +3,7 @@ import type { CardDefinition, Finish } from "../game/types";
 import { CARD_BACK_URL, cardImageSources } from "../services/cardAssets";
 import { formatCardPrice, useCardPrice } from "../services/pricing";
 import "../styles/card-experience.css";
+import { finishLabel } from "../game/finishes";
 import { Sparkles } from "lucide-react";
 export function CardView({
   card,
@@ -27,7 +28,7 @@ export function CardView({
   const [sourceIndex, setSourceIndex] = useState(0);
   const [failed, setFailed] = useState(false);
   const [backFailed, setBackFailed] = useState(false);
-  const sources = card ? cardImageSources(card) : [];
+  const sources = card ? cardImageSources(card, finish) : [];
   const [loaded, setLoaded] = useState(false);
   const [highLoaded, setHighLoaded] = useState(false);
   useEffect(() => {
@@ -37,12 +38,18 @@ export function CardView({
     setHighLoaded(false);
   }, [card?.id]);
   function tilt(e: React.PointerEvent<HTMLDivElement>) {
-    if (!interactive || !ref.current) return;
+    if (!ref.current) return;
     const r = ref.current.getBoundingClientRect(),
       x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)),
       y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
-    ref.current.style.setProperty("--rx", `${(0.5 - y) * 22}deg`);
-    ref.current.style.setProperty("--ry", `${(x - 0.5) * 24}deg`);
+    ref.current.style.setProperty(
+      "--rx",
+      `${interactive ? (0.5 - y) * 22 : 0}deg`,
+    );
+    ref.current.style.setProperty(
+      "--ry",
+      `${interactive ? (x - 0.5) * 24 : 0}deg`,
+    );
     ref.current.style.setProperty("--mx", `${x * 100}%`);
     ref.current.style.setProperty("--my", `${y * 100}%`);
   }
@@ -54,8 +61,10 @@ export function CardView({
   return (
     <div
       ref={ref}
-      className={`card-view ${ham === 10 ? "ham-perfect" : ""} ${back ? "card-back" : ""} finish-${finish} ${interactive ? "interactive" : ""} ${className}`}
+      className={`card-view ${ham === 10 ? "ham-perfect" : ""} ${back ? "card-back" : ""} finish-${finish} ${card && card.tier >= 4 ? "foil-full" : "foil-window"} ${interactive ? "interactive" : ""} ${className}`}
       style={{ "--card-hue": `${(card?.tier ?? 0) * 48}deg` } as CSSProperties}
+      data-finish={finishLabel(finish)}
+      onPointerDown={tilt}
       onPointerMove={tilt}
       onPointerLeave={reset}
       onPointerUp={reset}
@@ -97,7 +106,7 @@ export function CardView({
           {large && card?.image && (
             <img
               className="high-resolution"
-              src={`${card.image}/high.webp`}
+              src={`${card.finishImages?.[finish] ?? card.image}/high.webp`}
               alt=""
               aria-hidden="true"
               draggable={false}
@@ -139,15 +148,17 @@ export function CardView({
 export function CardPrice({
   cardId,
   finish = "matte",
+  compact = false,
 }: {
   cardId: string;
+  compact?: boolean;
   ham?: 7 | 8 | 9 | 10;
   finish?: Finish;
 }) {
   const { price, loading } = useCardPrice(cardId, finish);
   return (
     <span
-      className="card-market-price"
+      className={`card-market-price ${compact ? "compact" : ""}`}
       title={
         price
           ? `${price.variant} · ${price.updated ? `Updated ${new Date(price.updated).toLocaleDateString()}` : "Latest available snapshot"}`
@@ -155,12 +166,21 @@ export function CardPrice({
       }
     >
       {loading ? (
-        "Checking market…"
+        compact ? (
+          "…"
+        ) : (
+          "Checking market…"
+        )
       ) : price ? (
         <>
-          <b>{formatCardPrice(price)}</b>{" "}
-          <small>{price.source} · reference</small>
+          <b>
+            {price.estimated ? "≈" : ""}
+            {formatCardPrice(price)}
+          </b>{" "}
+          {!compact && <small>{price.source} · reference</small>}
         </>
+      ) : compact ? (
+        "—"
       ) : (
         "Market price unavailable"
       )}

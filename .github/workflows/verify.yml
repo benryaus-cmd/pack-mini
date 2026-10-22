@@ -16,4 +16,5 @@ jobs:
       - run: npm run test:browser
       - run: npm run test:social
       - run: npm run test:trade
-      - run: node tests/mini-arcade.mjs
+      - run: npm run test:arcade
+      - run: npm run test:update

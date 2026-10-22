@@ -79,3 +79,6 @@ for i,g in enumerate(groups):
 (ROOT/'src/game/mini-cards.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n')
 report={'source':'TCGdex/cards-database + assets.tcgdex.net/datas.json','sourceCommit':__import__('subprocess').check_output(['git','rev-parse','HEAD'],cwd=DB,text=True).strip(),'species':SPECIES,'indexedCandidates':len(cards),'verifiedPrintImages':len(valid),'artworks':len(groups),'collectibleLanguageArtSlots':len(result),'english':sum(c['language']=='en' for c in result),'japanese':sum(c['language']=='ja' for c in result),'missingArtwork':missing,'deduplication':'Artwork-area pHash <=3 AND dHash <=4 within the same species; matching illustrators also allow pHash <=10 AND dHash <=10 to account for scan/hologram differences. Earliest printing represents each language/artwork slot; reprint aliases retained for pricing. Conservative perceptual deduplication may retain border cases.'}
 (ROOT/'docs/MINI-CATALOGUE-AUDIT.json').write_text(json.dumps(report,indent=2,ensure_ascii=False)+'\n');print({k:v for k,v in report.items() if k!='missingArtwork'},flush=True)
+
+# Enrich exact representative-print finish metadata after perceptual artwork grouping.
+__import__("subprocess").run(["node",str(ROOT/"scripts/enrich-mini-variants.mjs"),str(DB)],cwd=ROOT,check=True)

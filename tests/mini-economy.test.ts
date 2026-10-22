@@ -82,7 +82,7 @@ test("overlapping art binders retain badges while any last-copy substitute survi
   assert(earnedBadges(s, defs).includes("all"));
   assert(!badgesLost(s, ["en"], defs).includes("all"));
   assert(!badgesLost(s, ["en", "duplicate"], defs).includes("all"));
-  assert(badgesLost(s, ["en", "duplicate"], defs).includes("english"));
+  assert(!earnedBadges(s, defs).includes("english"));
   assert(badgesLost(s, ["en", "duplicate", "ja"], defs).includes("all"));
 });
 test("sale quote cannot survive a grade change and removes only the sold physical instance", () => {

@@ -15,7 +15,7 @@ export function makeBinders(cards: CardDefinition[]): Binder[] {
     (c: CardDefinition) => boolean,
   ][] = [
     ["all", "ALL ART", "✦", "#f5c8ff", () => true],
-    ["english", "ENGLISH", "◈", "#9feada", (c) => c.language === "en"],
+    ["reverse", "REVERSE HOLOS", "◈", "#9feada", (c) => !!c.variants?.reverse],
     ["japanese", "日本語", "桜", "#ffb4ce", (c) => c.language === "ja"],
     [
       "starters",
@@ -55,16 +55,27 @@ export function makeBinders(cards: CardDefinition[]): Binder[] {
     })
     .filter((b) => b.cards.length);
 }
+export function binderAcceptsFinish(
+  id: string,
+  finish: import("./types.ts").Finish,
+) {
+  return id === "reverse"
+    ? finish === "reverse"
+    : id === "holo"
+      ? ["holo", "textured", "rainbow", "gold"].includes(finish)
+      : true;
+}
 export function binderOwned(b: Binder, s: Save, definitions: CardDefinition[]) {
   const byId = new Map(definitions.map((c) => [c.id, c]));
-  const ids = new Set(s.owned.map((o) => o.cardId));
-  const arts = new Set(
-    s.owned.map((o) => byId.get(o.cardId)?.artId ?? o.cardId),
-  );
   return b.cards.filter((c) =>
-    b.id === "english" || b.id === "japanese"
-      ? ids.has(c.id)
-      : arts.has(c.artId ?? c.id),
+    s.owned.some((o) => {
+      const def = byId.get(o.cardId);
+      const same =
+        b.id === "japanese"
+          ? o.cardId === c.id
+          : (def?.artId ?? o.cardId) === (c.artId ?? c.id);
+      return same && binderAcceptsFinish(b.id, o.finish);
+    }),
   );
 }
 export function earnedBadges(s: Save, cards: CardDefinition[]) {

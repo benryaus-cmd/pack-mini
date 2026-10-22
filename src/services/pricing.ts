@@ -286,3 +286,46 @@ export async function saleQuote(
     reference: `${price.variant}${fx}`,
   } as import("../game/selling").SaleQuote;
 }
+
+let usdRate: Promise<number | null> | undefined;
+/** Never compare a euro amount to dollar thresholds without a real conversion. */
+export async function priceUsd(price: CardPrice): Promise<number | null> {
+  if (price.currency === "USD") return price.amount;
+  usdRate ??= fetch(
+    "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD",
+    { signal: AbortSignal.timeout(6000) },
+  )
+    .then((r) => (r.ok ? r.json() : null))
+    .then((r) => (r?.rates?.USD > 0 ? r.rates.USD : null))
+    .catch(() => null);
+  const rate = await usdRate;
+  return rate ? price.amount * rate : null;
+}
+export function useOwnedPrices(save: Save) {
+  const key = [...new Set(save.owned.map((c) => c.cardId + ":" + c.finish))]
+    .sort()
+    .join("|");
+  const [prices, setPrices] = useState<
+    Record<string, { price: CardPrice; usd: number | null }>
+  >({});
+  useEffect(() => {
+    let alive = true;
+    const found: typeof prices = {};
+    const entries = new Map(
+      save.owned.map((c) => [c.cardId + ":" + c.finish, c]),
+    );
+    void Promise.all(
+      [...entries].map(async ([key, c]) => {
+        const price = await resolveCardPrice(c.cardId, c.finish);
+        if (price) {
+          found[key] = { price, usd: await priceUsd(price) };
+          if (alive) setPrices({ ...found });
+        }
+      }),
+    );
+    return () => {
+      alive = false;
+    };
+  }, [key]);
+  return prices;
+}
