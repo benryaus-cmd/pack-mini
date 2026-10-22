@@ -1,0 +1,5 @@
+import {useEffect} from 'react';
+import PackMiniApp from './upstream/src/App';
+import './upstream/src/styles/app.css';
+type Props={onOpenProjectFiles?:()=>void;onGameReady?:()=>void};
+export default function ImportedGame({onOpenProjectFiles,onGameReady}:Props){useEffect(()=>{onGameReady?.();},[onGameReady]);return <div id="packverse-game-root" className="packverse-game-root" aria-label="Pack Mini game"><PackMiniApp onOpenProjectFiles={onOpenProjectFiles}/></div>;}

@@ -1,0 +1,374 @@
+.mini-social {
+  padding-top: 8px !important;
+  position: relative;
+}
+.ms-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 0 2px 7px;
+  color: #35645a;
+}
+.ms-status > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ms-status button,
+.ms-picker-heading button {
+  background: none;
+  border: 0;
+  color: inherit;
+  padding: 4px;
+}
+.ms-status i,
+.ms-response-head i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #cfbbc2;
+}
+.ms-status .ms-online,
+.ms-response-head .ms-online {
+  background: #42ac86;
+  box-shadow: 0 0 0 3px #42ac8615;
+}
+.ms-status small {
+  opacity: 0.7;
+}
+.mini-social .social-tabs {
+  margin: 0 0 8px;
+  padding: 3px;
+  gap: 2px;
+  display: flex;
+}
+.mini-social .social-tabs button {
+  padding: 8px 4px;
+  flex: 1;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.ms-chat {
+  height: clamp(290px, 52dvh, 570px) !important;
+  max-height: none !important;
+  min-height: 290px;
+  overflow: auto;
+  scroll-behavior: auto;
+  overscroll-behavior: contain;
+  padding: 10px 8px !important;
+  background: #fffdfd;
+  border: 1px solid #f1e2e8;
+  border-radius: 14px;
+}
+.mini-social .chat-message {
+  gap: 7px;
+  margin-bottom: 12px;
+  padding: 0;
+}
+.mini-social .chat-message .avatar {
+  width: 27px;
+  height: 27px;
+  min-width: 27px;
+  font-size: 9px;
+}
+.ms-message-body {
+  min-width: 0;
+  width: 100%;
+}
+.ms-message-body > strong {
+  font-size: 10px !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.ms-message-body time {
+  margin-left: auto !important;
+  font-size: 8px !important;
+  opacity: 0.55;
+}
+.mini-social .chat-message p {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 3px 0;
+  overflow-wrap: anywhere;
+}
+.mini-social .chat-composer {
+  margin-top: 7px;
+  padding: 5px;
+  gap: 3px;
+  border-radius: 13px;
+  background: #fff;
+  border: 1px solid #e3eee9;
+}
+.mini-social .chat-composer input {
+  min-width: 0;
+  padding: 7px 4px;
+  font-size: 12px;
+}
+.ms-card-add {
+  font-size: 22px !important;
+  color: #78a597 !important;
+}
+.ms-reactions {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+.ms-reactions button {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid #ede5e9;
+  border-radius: 20px;
+  font-size: 9px;
+  padding: 2px 6px;
+  background: #fff;
+  color: #8a7c84;
+  min-height: 22px;
+}
+.ms-reactions button.active {
+  color: #3e8d75;
+  background: #e6f7ed;
+  border-color: #b6dec9;
+}
+.ms-trade-label {
+  display: block;
+  font-size: 9px;
+  color: #ad6b8c;
+  margin: 5px 0;
+}
+.ms-offered-cards {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ms-offered-cards > button {
+  border: 0;
+  padding: 0;
+  width: 65px;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+}
+.ms-offered-cards .card-view {
+  width: 100%;
+}
+.ms-offered-cards small {
+  font-size: 8px;
+  line-height: 1.2;
+  display: block;
+  margin: 3px 0;
+}
+.ms-offer-button,
+.ms-response-actions button {
+  border: 1px solid #d6e9dd;
+  background: #edfaf2;
+  color: #437e67;
+  border-radius: 15px;
+  font-size: 9px;
+  padding: 5px 9px;
+  margin-top: 4px;
+}
+.ms-thread {
+  border-left: 2px solid #f1d8e5;
+  margin-top: 7px;
+  padding-left: 9px;
+}
+.ms-response {
+  padding: 6px 0;
+}
+.ms-response-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  margin-bottom: 5px;
+}
+.ms-response-head span {
+  color: #a08c97;
+  font-size: 8px;
+}
+.ms-response-actions {
+  display: flex;
+  gap: 5px;
+}
+.ms-response .ms-offered-cards > button {
+  width: 48px;
+}
+.ms-notification {
+  padding: 9px 11px;
+  border: 1px solid #f0dee8;
+  border-radius: 12px;
+  margin-bottom: 7px;
+  background: #fffcfe;
+}
+.ms-notification > small {
+  font-size: 9px;
+  color: #9a8794;
+}
+.ms-pulls {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  margin-top: 11px;
+  padding: 2px;
+}
+.ms-pulls > button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid #e7eee9;
+  border-radius: 11px;
+  padding: 6px;
+  width: 155px;
+  text-align: left;
+}
+.ms-pulls .card-view {
+  width: 32px;
+  flex: none;
+}
+.ms-pulls > button > span {
+  min-width: 0;
+  font-size: 9px;
+}
+.ms-pulls small {
+  display: block;
+  font-size: 8px;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+.ms-pulls b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-server {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 5px;
+  padding: 5px 0 10px;
+}
+.ms-server input {
+  width: 100%;
+  min-width: 0;
+  font-size: 11px;
+  padding: 8px;
+  border: 1px solid #e4dce1;
+  border-radius: 8px;
+}
+.ms-server button {
+  grid-column: 1/-1;
+  border: 0;
+  border-radius: 9px;
+  padding: 6px;
+  background: #e8f7ee;
+  color: #50866d;
+}
+.ms-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 170;
+  background: #44333d66;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+}
+.ms-picker {
+  width: min(460px, 100%);
+  max-height: 80dvh;
+  background: #fffafd;
+  border: 1px solid #ecdbe5;
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 8px 50px #46313f33;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ms-picker-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #6b4a60;
+}
+.ms-picker-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  overflow: auto;
+  padding: 3px;
+}
+.ms-picker-cards > button {
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 9px;
+  padding: 3px;
+  color: #766472;
+  min-width: 0;
+}
+.ms-picker-cards > button.selected {
+  border-color: #72c8a3;
+  background: #e9f9ef;
+}
+.ms-picker-cards small {
+  display: block;
+  font-size: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-social .mini-badges {
+  display: inline-flex;
+  gap: 2px;
+  vertical-align: middle;
+}
+.mini-social .mini-badges .gym-badge {
+  font-size: 9px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+}
+.mini-social .collector-row {
+  padding: 9px 5px;
+}
+.mini-social .collector-row b {
+  font-size: 12px;
+}
+.mini-social .collector-row small {
+  font-size: 9px;
+}
+.mini-social .chat-empty {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 22px 12px;
+  color: #aa909e;
+}
+.mini-social .inline-error {
+  font-size: 10px;
+  margin: 5px 0 8px;
+}
+.ms-response button:disabled,
+.mini-social button:disabled {
+  opacity: 0.45;
+}
+.ms-offered-cards .ms-card-grade,
+.ms-picker-cards .ms-card-grade {
+  display: inline-block;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  border-radius: 4px;
+  background: #f8edf4;
+  color: #8d5b79;
+  padding: 2px 4px;
+  margin: 4px 0 1px;
+}
+.ms-offered-cards .ms-card-grade:has(+ small) {
+  max-width: 100%;
+}

@@ -1,0 +1,208 @@
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
+import { aippyTweaks } from '@aippy/runtime/tweaks';
+import tweaksConfig from '@/config/tweaksConfig.json';
+import ProjectFileViewer from '@/components/ProjectFileViewer';
+import {
+  GameLoadBoundary,
+  GameFailurePanel,
+  type StartupFailure,
+} from '@/components/GameLoadBoundary';
+import { copyText } from '@/gameHost/clipboard';
+
+const tweaks = aippyTweaks(tweaksConfig);
+
+type ProjectFilesCallbacks = { onBack: () => void; onInteraction: () => void; onCopySuccess: () => void; onCopyFailure: () => void };
+
+const LazyImportedGame = lazy(() => import('@/games/importedGame/ImportedGame'));
+
+function describeFailure(error: unknown, fallback: string): StartupFailure {
+  if (error instanceof Error) {
+    return { message: error.message || fallback, stack: error.stack };
+  }
+  if (error && typeof error === 'object') {
+    const value = error as { message?: unknown; stack?: unknown };
+    return {
+      message: typeof value.message === 'string' ? value.message : fallback,
+      stack: typeof value.stack === 'string' ? value.stack : undefined,
+    };
+  }
+  return { message: typeof error === 'string' ? error : fallback };
+}
+
+function App() {
+  const [projectFilesOpen, setProjectFilesOpen] = useState(false);
+  const [tempSaveUnlock, setTempSaveUnlock] = useState(false);
+  const [tempSaveCode, setTempSaveCode] = useState('');
+  const [tempSaveError, setTempSaveError] = useState('');
+  const [startupRequested, setStartupRequested] = useState(false);
+  const [startupError, setStartupError] = useState<StartupFailure | null>(null);
+  const [gameAttempt, setGameAttempt] = useState(0);
+  const [gameMounted, setGameMounted] = useState(false);
+  const startupMonitoring = useRef(false);
+  const startupMonitorTimer = useRef<number | undefined>(undefined);
+  const backgroundColor = tweaks.backgroundColor.useState();
+  const panelColor = tweaks.panelColor.useState();
+  const primaryText = tweaks.primaryText.useState();
+  const mutedText = tweaks.mutedText.useState();
+  const accentColor = tweaks.accentColor.useState();
+  tweaks.hostTitle.useState();
+  tweaks.showStatus.useState();
+  const themeStyle = {
+    '--host-bg': backgroundColor,
+    '--host-panel': panelColor,
+    '--host-text': primaryText,
+    '--host-muted': mutedText,
+    '--host-accent': accentColor,
+  } as CSSProperties;
+  const beginStartupMonitoring = useCallback(() => {
+    startupMonitoring.current = true;
+    if (startupMonitorTimer.current !== undefined) {
+      window.clearTimeout(startupMonitorTimer.current);
+    }
+    startupMonitorTimer.current = window.setTimeout(() => {
+      startupMonitoring.current = false;
+      startupMonitorTimer.current = undefined;
+    }, 15000);
+  }, []);
+  const recordFailure = useCallback((failure: StartupFailure) => {
+    startupMonitoring.current = false;
+    if (startupMonitorTimer.current !== undefined) {
+      window.clearTimeout(startupMonitorTimer.current);
+      startupMonitorTimer.current = undefined;
+    }
+    setStartupError((previous) => previous ?? failure);
+  }, []);
+
+  useEffect(() => {
+    const onError = (event: ErrorEvent) => {
+      if (!startupMonitoring.current) return;
+      const error = event.error ?? new Error(
+        `${event.message || 'The game could not start.'} ${event.filename}:${event.lineno}:${event.colno}`,
+      );
+      recordFailure(describeFailure(error, event.message || 'The game could not start.'));
+    };
+    const onRejection = (event: PromiseRejectionEvent) => {
+      if (startupMonitoring.current) {
+        recordFailure(describeFailure(event.reason, 'An asynchronous game startup task failed.'));
+      }
+    };
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    beginStartupMonitoring();
+    setStartupRequested(true);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+      if (startupMonitorTimer.current !== undefined) {
+        window.clearTimeout(startupMonitorTimer.current);
+      }
+    };
+  }, [beginStartupMonitoring, recordFailure]);
+
+  const markGameMounted = useCallback(() => setGameMounted(true), []);
+  useEffect(() => {
+    if (!gameMounted) return undefined;
+    const timer = window.setTimeout(() => {
+      const selectors = ['#root', '.packverse-app', '#packverse-game-root', '.desktop-scene', '.game-root'];
+      const samples = selectors.map((selector) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        if (!element) return { selector, width: 0, height: 0, display: 'missing', visibility: 'hidden', opacity: '0' };
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return { selector, width: Math.round(rect.width), height: Math.round(rect.height), display: style.display, visibility: style.visibility, opacity: style.opacity };
+      });
+      console.info('[Aippy] Packverse layout check', samples);
+      const broken = samples.find((sample) => sample.width === 0 || sample.height === 0 || sample.display === 'none' || sample.visibility === 'hidden' || sample.opacity === '0');
+      if (broken) {
+        recordFailure({
+          message: `Packverse layout is unavailable at ${broken.selector} (${broken.width}×${broken.height}, ${broken.display}, ${broken.visibility}, opacity ${broken.opacity}).`,
+          stack: JSON.stringify(samples, null, 2),
+        });
+      }
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [gameMounted, recordFailure]);
+
+  const openProjectFiles = () => { setTempSaveCode(''); setTempSaveError(''); setTempSaveUnlock(true); };
+  const retryGame = () => {
+    beginStartupMonitoring();
+    setStartupError(null);
+    setGameMounted(false);
+    setGameAttempt((attempt) => attempt + 1);
+  };
+  const copyFailure = async (failure: StartupFailure) =>
+    copyText([failure.message, failure.stack].filter(Boolean).join('\n\n'));
+  const feedback = (pattern: number | number[]) => {
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
+  };
+  const projectFilesCallbacks: ProjectFilesCallbacks = {
+    onBack: () => setProjectFilesOpen(false),
+    onInteraction: () => feedback(8),
+    onCopySuccess: () => feedback([10, 20, 10]),
+    onCopyFailure: () => feedback(24),
+  };
+
+  return (
+    <div className="packverse-app" style={themeStyle}>
+      <div className="packverse-game-mount">
+        {startupError ? (
+          <GameFailurePanel
+            failure={startupError}
+            onCopy={() => copyFailure(startupError)}
+            onOpenProjectFiles={openProjectFiles}
+            onRetry={retryGame}
+          />
+        ) : !startupRequested ? (
+          <div className="game-startup-state" role="status">Preparing PACKVERSE…</div>
+        ) : (
+          <GameLoadBoundary
+            key={gameAttempt}
+            onFailure={recordFailure}
+            onOpenProjectFiles={openProjectFiles}
+            onRetry={retryGame}
+          >
+            <Suspense fallback={<div className="game-startup-state" role="status">Loading PACKVERSE…</div>}>
+              <LazyImportedGame
+                onOpenProjectFiles={openProjectFiles}
+                onGameReady={markGameMounted}
+              />
+            </Suspense>
+          </GameLoadBoundary>
+        )}
+      </div>
+      {tempSaveUnlock && (
+        <div className="host-project-overlay" style={{display:'grid',placeItems:'center',background:'#07101deb',zIndex:1000}}>
+          <form role="dialog" aria-modal="true" aria-label="temp save" style={{width:'min(320px,90%)',padding:24,border:'1px solid #d8b974',borderRadius:16,background:'#111b2c',color:'#f5e1b2'}} onSubmit={(event) => {
+            event.preventDefault();
+            if(tempSaveCode === '1234') { setTempSaveUnlock(false); setProjectFilesOpen(true); setTempSaveCode(''); }
+            else setTempSaveError('Incorrect code. Try again.');
+          }}>
+            <h2 style={{marginTop:0}}>temp save</h2>
+            <label htmlFor="temp-save-code">Enter code</label>
+            <input id="temp-save-code" aria-label="temp save code" type="password" inputMode="numeric" autoComplete="off" maxLength={4} autoFocus value={tempSaveCode} onChange={event=>setTempSaveCode(event.target.value)} style={{display:'block',width:'100%',boxSizing:'border-box',padding:12,margin:'10px 0',background:'#08111f',color:'white',border:'1px solid #728096',borderRadius:7}} />
+            {tempSaveError && <p role="alert">{tempSaveError}</p>}
+            <div style={{display:'flex',gap:12}}>
+              <button type="submit" style={{padding:12,background:'#edd18c',color:'#101827',border:0,borderRadius:7}}>Unlock</button>
+              <button type="button" onClick={()=>setTempSaveUnlock(false)} style={{padding:12,background:'transparent',color:'inherit',border:'1px solid #728096',borderRadius:7}}>Cancel</button>
+            </div>
+          </form>
+        </div>
+      )}
+      {projectFilesOpen && (
+        <div className="host-project-overlay">
+          <ProjectFileViewer {...projectFilesCallbacks} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

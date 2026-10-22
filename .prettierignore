@@ -1,0 +1,5 @@
+package-lock.json
+src/game/catalogue.json
+public/
+dist/
+test-results/

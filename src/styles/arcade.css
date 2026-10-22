@@ -1,0 +1,319 @@
+.arcade-panel > h2 {
+  font:
+    700 30px "Barlow Condensed",
+    Impact,
+    sans-serif;
+  margin: 8px 0;
+}
+.arcade-panel > p {
+  font-size: 12px;
+  color: #a7aab7;
+  line-height: 1.7;
+}
+.arcade-study {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  text-align: left;
+  padding: 17px;
+  margin: 23px 0;
+  border: 1px solid #746143;
+  border-radius: 10px;
+  background: linear-gradient(120deg, #33291f, #16171e);
+  color: #edca83;
+}
+.arcade-study span {
+  flex: 1;
+}
+.arcade-study b,
+.arcade-study small {
+  display: block;
+}
+.arcade-study b {
+  font-size: 16px;
+}
+.arcade-study small {
+  font-size: 10px;
+  color: #b4abb0;
+  margin-top: 5px;
+}
+.arcade-study strong {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.arcade-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.arcade-tabs button {
+  flex: 1;
+  font-size: 11px;
+  padding: 12px 6px;
+  border: 1px solid #393a49;
+  border-radius: 6px;
+  background: #15161d;
+  color: #9b9ca9;
+}
+.arcade-tabs button[aria-selected="true"] {
+  background: #342a20;
+  border-color: #b68c4b;
+  color: #f1d291;
+}
+.arcade-machine {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #36333d;
+  background: radial-gradient(ellipse at top, #34253b, #11131d 75%);
+}
+.arcade-reels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px 0 8px;
+}
+.arcade-reels > span {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  font-size: clamp(32px, 9vw, 64px);
+  color: #f6d48e;
+  background: linear-gradient(#14111d, #32253e 50%, #14111d);
+  border: 1px solid #806849;
+  border-radius: 9px;
+  text-shadow: 0 0 24px #e5b76460;
+  overflow: hidden;
+}
+.is-playing .arcade-reels > span {
+  animation: arcade-spin 0.8s ease-out both;
+}
+.is-playing .arcade-reels > span:nth-child(2) {
+  animation-duration: 0.7s;
+}
+.is-playing .arcade-reels > span:nth-child(3) {
+  animation-duration: 0.65s;
+}
+.arcade-result {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  align-content: center;
+  font-size: 10px;
+  color: #b3a7bd;
+}
+.arcade-result b {
+  color: #f1cf89;
+  font-size: 17px;
+}
+.arcade-result small {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 10px;
+}
+.arcade-machine > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 46px;
+}
+.arcade-odds {
+  margin-top: 18px;
+  color: #9c9eab;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.arcade-odds summary {
+  cursor: pointer;
+  color: #c9bdcb;
+}
+.arcade-drop {
+  margin: 0 auto;
+  max-width: 350px;
+}
+.arcade-drop svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.arcade-peg {
+  fill: #6d5e7d;
+}
+.arcade-trail {
+  fill: none;
+  stroke: #f4c563;
+  stroke-width: 2;
+  opacity: 0.3;
+}
+.arcade-ball {
+  fill: #ffe4a1;
+  filter: drop-shadow(0 0 5px #f4bc54);
+  offset-distance: 100%;
+}
+.is-playing .arcade-ball {
+  animation: arcade-drop 0.8s ease-out both;
+}
+.arcade-bins {
+  display: flex;
+  justify-content: space-around;
+  gap: 4px;
+}
+.arcade-bins span {
+  flex: 1;
+  text-align: center;
+  padding: 9px 0;
+  background: #22212c;
+  border-radius: 4px;
+  color: #bbb0c3;
+  font-size: 13px;
+  font-weight: 700;
+}
+.arcade-bins .landed {
+  background: #665032;
+  color: #ffe2a4;
+  box-shadow: 0 0 15px #f6cb6920;
+}
+@keyframes arcade-spin {
+  0% {
+    filter: blur(5px);
+    transform: translateY(-5px);
+  }
+  40% {
+    filter: blur(3px);
+    transform: translateY(5px);
+  }
+  100% {
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+@keyframes arcade-drop {
+  from {
+    offset-distance: 0;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+.reduced-motion .arcade-reels > span,
+.reduced-motion .arcade-ball {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .arcade-reels > span,
+  .arcade-ball {
+    animation: none !important;
+  }
+}
+/* Physical board and continuously travelling reel strips. */
+.arcade-reel {
+  height: 104px;
+  overflow: hidden;
+  border: 1px solid #806849;
+  border-radius: 9px;
+  background: linear-gradient(#14111d, #32253e 50%, #14111d);
+  position: relative;
+}
+.arcade-reel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    #11111c80,
+    transparent 35%,
+    transparent 65%,
+    #11111c80
+  );
+}
+.arcade-strip {
+  transform: translateY(-2496px);
+  color: #f6d48e;
+  text-shadow: 0 0 24px #e5b76460;
+}
+.arcade-strip > span {
+  height: 104px;
+  display: grid;
+  place-items: center;
+  font-size: 64px;
+}
+.arcade-strip.is-spinning {
+  animation: arcade-travel var(--stop-time) cubic-bezier(0.12, 0.68, 0.24, 1)
+    both;
+}
+@keyframes arcade-travel {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2496px);
+  }
+}
+.arcade-drop {
+  max-width: 340px;
+}
+.arcade-board {
+  fill: #111722;
+  stroke: #61523f;
+  stroke-width: 2;
+}
+.arcade-divider {
+  stroke: #796142;
+  stroke-width: 4;
+}
+.arcade-live {
+  font-size: 10px;
+  color: #a7aab7;
+  text-align: center;
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+.arcade-launches {
+  display: flex;
+  gap: 5px;
+}
+.arcade-launches button {
+  flex: 1;
+  min-width: 0;
+  background: #493721;
+  border: 1px solid #937247;
+  border-radius: 6px;
+  padding: 12px 2px;
+  color: #f1d291;
+}
+.arcade-launches b,
+.arcade-launches small {
+  display: block;
+}
+.arcade-launches b {
+  font-size: 10px;
+}
+.arcade-launches small {
+  font-size: 9px;
+  margin-top: 6px;
+}
+.arcade-launches button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+@media (max-width: 450px) {
+  .arcade-machine {
+    padding: 13px;
+  }
+  .arcade-reels {
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arcade-strip.is-spinning {
+    animation-duration: 1ms;
+  }
+}
+.reduced-motion .arcade-strip.is-spinning {
+  animation-duration: 1ms;
+}

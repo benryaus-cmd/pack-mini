@@ -1,0 +1,165 @@
+/* Physical card imagery, opening choreography and touch gestures. */
+.card-view.card-back {
+  border: 0;
+  background: #123675;
+}
+.card-view.card-back > img {
+  object-fit: fill;
+  z-index: 2;
+}
+.card-view.card-back .back-design {
+  z-index: 0;
+}
+.card-view > img.high-resolution {
+  z-index: 2;
+}
+.card-market-price {
+  display: inline-flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 9px;
+  color: #98a9bd;
+}
+.card-market-price b {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: #e6d4ac;
+}
+.card-market-price small {
+  color: #8394ab !important;
+  font-size: 8px !important;
+}
+.opening.immersive.phase-reveal .opening-top {
+  padding: 5px 12px 0;
+}
+.opening.immersive .reveal-heading {
+  min-height: 0;
+  padding: 0 12px 6px;
+}
+.opening.immersive .reveal-heading h2 {
+  font-size: clamp(21px, 6cqw, 31px);
+  margin: 3px 0 6px;
+}
+.opening.immersive .reveal-heading > .eyebrow {
+  font-size: 6px;
+}
+.opening.immersive .revealed-card,
+.opening.immersive .stack-layer {
+  height: min(100%, 63cqh, 108cqw);
+  max-width: 80cqw;
+}
+.opening.immersive .reveal-stage {
+  touch-action: pan-y;
+  padding: 6px 0 9px;
+}
+.opening.immersive .reveal-stage .revealed-card {
+  filter: drop-shadow(0 18px 23px #0009);
+}
+.opening.immersive .stack-layer.layer-1 {
+  translate: 6px 5px;
+  rotate: 4deg;
+}
+.opening.immersive .stack-layer.layer-2 {
+  translate: -8px 5px;
+  rotate: -5deg;
+}
+.opening.immersive.phase-reveal .opening-controls {
+  gap: 4px;
+  padding: 6px 20px 10px;
+}
+.opening.immersive.phase-reveal .opening-controls .primary {
+  min-height: 40px;
+}
+.opening.immersive .card-index {
+  margin: 1px 0 3px;
+  font-size: 6px;
+}
+.opening.immersive .swipe-instruction {
+  color: #a6b6ca;
+  font-size: 8px;
+  letter-spacing: 0.02em;
+}
+.opening.immersive .showcase-card-action {
+  min-height: 30px;
+  padding: 5px 15px;
+  font-size: 8px;
+}
+.opening.immersive .new-card-ribbon {
+  bottom: 1%;
+}
+.opening.immersive.spectacular-pull {
+  background:
+    radial-gradient(ellipse at 50% 43%, #7257a356, transparent 64%), #090f1c;
+}
+.opening.immersive.spectacular-pull .revealed-card {
+  filter: drop-shadow(0 0 20px #e5bd6655);
+}
+.opening.immersive.spectacular-pull .reveal-halo {
+  opacity: 1;
+  background: radial-gradient(
+    ellipse,
+    #d5b55c35,
+    #b774b51c 40%,
+    transparent 66%
+  );
+}
+.celebration-label {
+  color: #f6d98e;
+  letter-spacing: 0.12em;
+  font-size: 7px;
+}
+.opening-toast {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 90%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid #d5bd72;
+  border-radius: 12px;
+  background: #1b293bf5;
+  color: #fff2c9;
+  z-index: 20;
+  box-shadow: 0 10px 35px #0007;
+  font-size: 12px;
+  text-align: center;
+  pointer-events: none;
+}
+@container (max-height: 560px) {
+  .opening.immersive .revealed-card,
+  .opening.immersive .stack-layer {
+    height: min(100%, 58cqh, 105cqw);
+  }
+  .opening.immersive .reveal-heading h2 {
+    font-size: 21px;
+  }
+  .opening.immersive.phase-reveal .opening-controls {
+    gap: 2px;
+    padding-top: 2px;
+  }
+  .opening.immersive .showcase-card-action {
+    min-height: 25px;
+  }
+  .opening.immersive .reveal-heading > .eyebrow {
+    display: none;
+  }
+}
+.opening.motion-reduced *,
+.opening.motion-reduced *::before,
+.opening.motion-reduced *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .opening *,
+  .opening *::before,
+  .opening *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

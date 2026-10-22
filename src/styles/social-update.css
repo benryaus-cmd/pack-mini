@@ -1,0 +1,102 @@
+.social-page {
+  padding-top: 12px;
+}
+.social-page .connection-card {
+  padding: 10px 12px;
+  margin-bottom: 5px;
+}
+.social-page .social-tabs {
+  margin-top: 8px;
+}
+.social-page .server-edit {
+  margin: 4px 0;
+}
+.social-page .chat-log {
+  min-height: 160px;
+  max-height: 36dvh;
+}
+.chat-shortcut {
+  position: absolute;
+  right: 15px;
+  bottom: 83px;
+  z-index: 21;
+  border: 1px solid #d6b86e;
+  background: #152333;
+  color: #f3d899;
+  border-radius: 30px;
+  padding: 11px 14px;
+  box-shadow: 0 5px 20px #0006;
+  font-size: 11px;
+}
+.trade-offers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+.trade-offers section {
+  background: #ffffff06;
+  border: 1px solid #ffffff19;
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 0;
+}
+.trade-offers h4 {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: #f3d899;
+}
+.trade-card-row {
+  display: flex;
+  gap: 5px;
+}
+.trade-card-row > div {
+  flex: 1;
+  min-width: 0;
+}
+.trade-card-row small {
+  display: block;
+  font-size: 9px;
+}
+.trade-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 34dvh;
+  overflow: auto;
+  margin: 12px 0;
+}
+.trade-picker button {
+  min-width: 0;
+  padding: 3px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+.trade-picker button[aria-pressed="true"] {
+  border-color: #edd085;
+  background: #d9b76022;
+}
+.trade-picker small {
+  font-size: 9px;
+}
+.trade-toast {
+  position: absolute;
+  z-index: 45;
+  top: 108px;
+  right: 12px;
+  left: 12px;
+  background: #233d40;
+  border: 1px solid #9bd8b8;
+  color: #e9ffec;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 12px;
+}
+.trades-panel .primary {
+  margin-top: 12px;
+}
+.trades-panel .secondary {
+  margin-top: 8px;
+}

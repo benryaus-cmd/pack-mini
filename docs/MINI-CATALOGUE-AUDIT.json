@@ -1,0 +1,2491 @@
+{
+  "source": "TCGdex/cards-database + assets.tcgdex.net/datas.json",
+  "sourceCommit": "cbddf7e54033b1b58e44af1049c88832e55b94d0",
+  "species": {
+    "1": "Bulbasaur",
+    "4": "Charmander",
+    "6": "Charizard",
+    "7": "Squirtle",
+    "25": "Pikachu",
+    "133": "Eevee",
+    "150": "Mewtwo",
+    "197": "Umbreon",
+    "448": "Lucario",
+    "658": "Greninja",
+    "778": "Mimikyu"
+  },
+  "indexedCandidates": 699,
+  "verifiedPrintImages": 699,
+  "artworks": 614,
+  "collectibleLanguageArtSlots": 662,
+  "english": 598,
+  "japanese": 64,
+  "missingArtwork": [
+    {
+      "language": "en",
+      "id": "ecard2-H29",
+      "name": "Umbreon"
+    },
+    {
+      "language": "en",
+      "id": "bog-8",
+      "name": "Rocket’s Mewtwo"
+    },
+    {
+      "language": "en",
+      "id": "ecard3-H30",
+      "name": "Umbreon"
+    },
+    {
+      "language": "en",
+      "id": "ex5.5-5",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2014xy-5",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2015xy-6",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2016xy-12",
+      "name": "Tackle"
+    },
+    {
+      "language": "en",
+      "id": "2016xy-6",
+      "name": "Tail Whip"
+    },
+    {
+      "language": "en",
+      "id": "2017sm-5",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2018sm-11",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "2018sm-4",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2019sm-12",
+      "name": "Gnaw"
+    },
+    {
+      "language": "en",
+      "id": "2019sm-6",
+      "name": "Iron Tail"
+    },
+    {
+      "language": "en",
+      "id": "2021swsh-1",
+      "name": "Bulbasaur"
+    },
+    {
+      "language": "en",
+      "id": "2021swsh-17",
+      "name": "Squirtle"
+    },
+    {
+      "language": "en",
+      "id": "2021swsh-25",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2021swsh-9",
+      "name": "Charmander"
+    },
+    {
+      "language": "en",
+      "id": "2022swsh-7",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2023sv-6",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2024sv-1",
+      "name": "Charizard"
+    },
+    {
+      "language": "en",
+      "id": "2024sv-13",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "2024sv-2",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "2024sv-9",
+      "name": "Umbreon"
+    },
+    {
+      "language": "en",
+      "id": "30th-021",
+      "name": "Greninja ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-023",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-024",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-025",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-026",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-027",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-028",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-029",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-030",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-031",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-032",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-033",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-034",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-035",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-036",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-037",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-038",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-039",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-040",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-041",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-042",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-043",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-044",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-045",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-046",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-047",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-048",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-049",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-050",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-051",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-052",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "30th-053",
+      "name": "Pikachu ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-054",
+      "name": "Pikachu ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-063",
+      "name": "Mewtwo"
+    },
+    {
+      "language": "en",
+      "id": "30th-064",
+      "name": "Mewtwo ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-083",
+      "name": "Lucario"
+    },
+    {
+      "language": "en",
+      "id": "30th-091",
+      "name": "Umbreon"
+    },
+    {
+      "language": "en",
+      "id": "30th-092",
+      "name": "Umbreon ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-116",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "30th-117",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "30th-118",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "30th-148",
+      "name": "Greninja ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-149",
+      "name": "Pikachu ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-150",
+      "name": "Pikachu ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-151",
+      "name": "Mewtwo ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-157",
+      "name": "Mewtwo ex"
+    },
+    {
+      "language": "en",
+      "id": "30th-c-001",
+      "name": "Charizard"
+    },
+    {
+      "language": "en",
+      "id": "30th-c-009",
+      "name": "Greninja BREAK"
+    },
+    {
+      "language": "en",
+      "id": "30th-c-014",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "mep-012",
+      "name": "Mega Lucario ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-023",
+      "name": "Mega Charizard X ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-029",
+      "name": "Mega Charizard X ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-030",
+      "name": "Mega Charizard Y ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-033",
+      "name": "Mega Lucario ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-037",
+      "name": "Bulbasaur"
+    },
+    {
+      "language": "en",
+      "id": "mep-038",
+      "name": "Charmander"
+    },
+    {
+      "language": "en",
+      "id": "mep-039",
+      "name": "Squirtle"
+    },
+    {
+      "language": "en",
+      "id": "mep-081",
+      "name": "Mega Greninja ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-093",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "mep-095",
+      "name": "Lucario"
+    },
+    {
+      "language": "en",
+      "id": "mep-099",
+      "name": "Greninja ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-104",
+      "name": "Mewtwo"
+    },
+    {
+      "language": "en",
+      "id": "mep-107",
+      "name": "Pikachu ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-109",
+      "name": "Pikachu ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-110",
+      "name": "Umbreon ex"
+    },
+    {
+      "language": "en",
+      "id": "mep-Museum",
+      "name": "Pikachu at the Museum"
+    },
+    {
+      "language": "en",
+      "id": "mfb-1",
+      "name": "Bulbasaur"
+    },
+    {
+      "language": "en",
+      "id": "mfb-17",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "mfb-25",
+      "name": "Squirtle"
+    },
+    {
+      "language": "en",
+      "id": "mfb-9",
+      "name": "Charmander"
+    },
+    {
+      "language": "en",
+      "id": "svp-085",
+      "name": "Pikachu with Grey Felt Hat"
+    },
+    {
+      "language": "en",
+      "id": "svp-176",
+      "name": "Umbreon ex"
+    },
+    {
+      "language": "en",
+      "id": "svp-190",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "svp-196",
+      "name": "Charizard ex"
+    },
+    {
+      "language": "en",
+      "id": "svp-200",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "svp-205",
+      "name": "Team Rocket's Mewtwo ex"
+    },
+    {
+      "language": "en",
+      "id": "svp-214",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "svp-216",
+      "name": "Team Rocket's Mewtwo ex"
+    },
+    {
+      "language": "en",
+      "id": "svp-225",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "sm7.5-1",
+      "name": "Charmander"
+    },
+    {
+      "language": "en",
+      "id": "sm7.5-3",
+      "name": "Charizard"
+    },
+    {
+      "language": "en",
+      "id": "sm6-122",
+      "name": "Lucario GX"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM170",
+      "name": "Detective Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM183",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM184",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM190",
+      "name": "Detective Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM194",
+      "name": "Detective Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM195",
+      "name": "Charizard GX"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM196",
+      "name": "Mewtwo GX"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM197",
+      "name": "Greninja GX"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM198",
+      "name": "Bulbasaur"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM226",
+      "name": "Charizard"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM227",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM228",
+      "name": "Armored Mewtwo"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM232",
+      "name": "Pikachu GX"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM233",
+      "name": "Eevee GX"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM234",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM235",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "smp-SM242",
+      "name": "Eevee GX"
+    },
+    {
+      "language": "en",
+      "id": "sm3.5-1",
+      "name": "Bulbasaur"
+    },
+    {
+      "language": "en",
+      "id": "sm3.5-28",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "sm3.5-39",
+      "name": "Mewtwo GX"
+    },
+    {
+      "language": "en",
+      "id": "sm3.5-72",
+      "name": "Mewtwo GX"
+    },
+    {
+      "language": "en",
+      "id": "sm3.5-76",
+      "name": "Mewtwo GX"
+    },
+    {
+      "language": "en",
+      "id": "sm3.5-78",
+      "name": "Mewtwo GX"
+    },
+    {
+      "language": "en",
+      "id": "swsh9tg-TG11",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "swsh9tg-TG16",
+      "name": "Mimikyu V"
+    },
+    {
+      "language": "en",
+      "id": "swsh9tg-TG17",
+      "name": "Mimikyu VMAX"
+    },
+    {
+      "language": "en",
+      "id": "swsh9tg-TG22",
+      "name": "Umbreon V"
+    },
+    {
+      "language": "en",
+      "id": "swsh9tg-TG23",
+      "name": "Umbreon VMAX"
+    },
+    {
+      "language": "en",
+      "id": "cel25cc-CC002",
+      "name": "Charizard"
+    },
+    {
+      "language": "en",
+      "id": "cel25cc-CC008",
+      "name": "_____'s Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "cel25cc-CC015",
+      "name": "Umbreon ☆"
+    },
+    {
+      "language": "en",
+      "id": "cel25cc-CC022",
+      "name": "Mewtwo EX"
+    },
+    {
+      "language": "en",
+      "id": "swsh12.5gg-GG30",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "swsh12.5gg-GG44",
+      "name": "Mewtwo VSTAR"
+    },
+    {
+      "language": "en",
+      "id": "swsh11tg-TG03",
+      "name": "Charizard"
+    },
+    {
+      "language": "en",
+      "id": "swsh11tg-TG05",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "swsh11tg-TG16",
+      "name": "Pikachu V"
+    },
+    {
+      "language": "en",
+      "id": "swsh11tg-TG17",
+      "name": "Pikachu VMAX"
+    },
+    {
+      "language": "en",
+      "id": "swsh11tg-TG29",
+      "name": "Pikachu VMAX"
+    },
+    {
+      "language": "en",
+      "id": "swshp-SWSH074",
+      "name": "Special Delivery Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "swshp-SWSH075",
+      "name": "Special Delivery Charizard"
+    },
+    {
+      "language": "en",
+      "id": "swshp-SWSH303",
+      "name": "Bulbasaur"
+    },
+    {
+      "language": "en",
+      "id": "swshp-SWSH305",
+      "name": "Greninja"
+    },
+    {
+      "language": "en",
+      "id": "swsh4.5sv-SV107",
+      "name": "Charizard VMAX"
+    },
+    {
+      "language": "en",
+      "id": "tk-dp-l-3",
+      "name": "Lucario"
+    },
+    {
+      "language": "en",
+      "id": "tk-ex-latio-6",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "tk-ex-m-2",
+      "name": "Charmander"
+    },
+    {
+      "language": "en",
+      "id": "tk-hs-r-16",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "tk-hs-r-2",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "tk-sm-r-14",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "tk-sm-r-29",
+      "name": "Pikachu"
+    },
+    {
+      "language": "en",
+      "id": "tk-xy-p-14",
+      "name": "Pikachu Libre"
+    },
+    {
+      "language": "en",
+      "id": "tk-xy-p-30",
+      "name": "Pikachu Libre"
+    },
+    {
+      "language": "en",
+      "id": "tk-xy-su-4",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "tk-xy-sy-13",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "tk-xy-sy-21",
+      "name": "Eevee"
+    },
+    {
+      "language": "en",
+      "id": "xya-55a",
+      "name": "M Lucario-EX"
+    },
+    {
+      "language": "ja",
+      "id": "BW8a-042",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-020",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-043",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-101",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-102",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-103",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-131",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-132",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-133",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M-P-134",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "M1L-001",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "M1L-029",
+      "name": "メガルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "M1L-064",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "M1L-078",
+      "name": "メガルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "M1L-088",
+      "name": "メガルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "M1L-092",
+      "name": "メガルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "M2-011",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "M2-013",
+      "name": "メガリザードンXex"
+    },
+    {
+      "language": "ja",
+      "id": "M2-094",
+      "name": "メガリザードンXex"
+    },
+    {
+      "language": "ja",
+      "id": "M2-110",
+      "name": "メガリザードンXex"
+    },
+    {
+      "language": "ja",
+      "id": "M2-116",
+      "name": "メガリザードンXex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-044",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-063",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-079",
+      "name": "ロケット団のミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-092",
+      "name": "メガルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-205",
+      "name": "ロケット団のミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-223",
+      "name": "メガリザードンXex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-228",
+      "name": "メガルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-234",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M2a-237",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "M4-022",
+      "name": "メガゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "M4-098",
+      "name": "メガゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "M4-114",
+      "name": "メガゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "M4-120",
+      "name": "メガゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-015",
+      "name": "ゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-017",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-018",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-019",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-020",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-021",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-022",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-023",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-024",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-025",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-026",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-027",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-028",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-029",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-030",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-031",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-032",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-033",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-034",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-035",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-036",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-037",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-038",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-039",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-040",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-041",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-042",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-043",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-044",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-045",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-046",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-047",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-048",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-054",
+      "name": "ミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-055",
+      "name": "ミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-069",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-077",
+      "name": "ブラッキー"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-094",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-125",
+      "name": "ゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-126",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-127",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-128",
+      "name": "ミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-134",
+      "name": "ミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-136",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-137",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "M6a-157",
+      "name": "ゲッコウガBREAK"
+    },
+    {
+      "language": "ja",
+      "id": "MC-083",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "MC-085",
+      "name": "メガリザードンYex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-208",
+      "name": "ゲッコウガex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-225",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "MC-227",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-290",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-341",
+      "name": "ロケット団のミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "MC-380",
+      "name": "ルカリオex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-446",
+      "name": "ブラッキーex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-564",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "MC-565",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "MC-566",
+      "name": "イーブイex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-755",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "MC-764",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "MC-766",
+      "name": "メガリザードンYex"
+    },
+    {
+      "language": "ja",
+      "id": "MF-010",
+      "name": "ミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "MF-017",
+      "name": "ブラッキーex"
+    },
+    {
+      "language": "ja",
+      "id": "MF-025",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "MF-026",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "MF-044",
+      "name": "ブラッキーex"
+    },
+    {
+      "language": "ja",
+      "id": "PCG1-037",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "PCG3-064",
+      "name": "RocketのMewtwo Ex"
+    },
+    {
+      "language": "ja",
+      "id": "PCG4-079",
+      "name": "Eevee"
+    },
+    {
+      "language": "ja",
+      "id": "PCG4-091",
+      "name": "Umbreon ex"
+    },
+    {
+      "language": "ja",
+      "id": "PCG6-019",
+      "name": "mewtwo（デルタ種）"
+    },
+    {
+      "language": "ja",
+      "id": "PCG6-069",
+      "name": "Umbreon（デルタ種）"
+    },
+    {
+      "language": "ja",
+      "id": "PCG6-073",
+      "name": "Eevee（デルタ種）"
+    },
+    {
+      "language": "ja",
+      "id": "PCG7-041",
+      "name": "ピカチュウ（デルタ種）"
+    },
+    {
+      "language": "ja",
+      "id": "PCG8-001",
+      "name": "ブルバサウルス"
+    },
+    {
+      "language": "ja",
+      "id": "PCG8-011",
+      "name": "チャーマンダー"
+    },
+    {
+      "language": "ja",
+      "id": "PCG8-018",
+      "name": "squirtle"
+    },
+    {
+      "language": "ja",
+      "id": "PCG8-032",
+      "name": "カリザード（デルタ種）"
+    },
+    {
+      "language": "ja",
+      "id": "PCG9-052",
+      "name": "カリザードスター（デルタ種）"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG1-001",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG1-014",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG1-021",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG1-023",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG1-035",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG1-050",
+      "name": "ミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG2-024",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG2-037",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG4-012",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG4-017",
+      "name": "わるいリザードン"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG4-018",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG4-049",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG5-007",
+      "name": "エリカのフシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG5-036",
+      "name": "マチスのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG5-062",
+      "name": "マチスのイーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG6-025",
+      "name": "カツラのヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG6-032",
+      "name": "カツラのリザードン"
+    },
+    {
+      "language": "ja",
+      "id": "PMCG6-055",
+      "name": "R団のミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-001",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-002",
+      "name": "シブヤのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-024",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-036",
+      "name": "救助隊DXのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-044",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-075",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-099",
+      "name": "名探偵ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-100",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-101",
+      "name": "イーブイVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-103",
+      "name": "リザードンV"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-104",
+      "name": "リザードンVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-105",
+      "name": "まるのみされたピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-112",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-117",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-121",
+      "name": "ピカチュウV"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-122",
+      "name": "ピカチュウV"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-123",
+      "name": "ピカチュウVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-124",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-125",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-126",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-132",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-143",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-144",
+      "name": "カナザワのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-147",
+      "name": "カナザワのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-161",
+      "name": "ブラッキー"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-163",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-181",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-208",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-220",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-227",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-239",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-265",
+      "name": "ピカチュウVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-272",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-273",
+      "name": "ミュウツーV"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-287",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-289",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-290",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-337",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "S-P-339",
+      "name": "ゲッコウガ"
+    },
+    {
+      "language": "ja",
+      "id": "S5I-027",
+      "name": "ミミッキュV"
+    },
+    {
+      "language": "ja",
+      "id": "S5I-073",
+      "name": "ミミッキュV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-015",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-017",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-045",
+      "name": "ピカチュウV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-046",
+      "name": "ピカチュウVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-076",
+      "name": "ミミッキュV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-077",
+      "name": "ミミッキュVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-100",
+      "name": "ブラッキーV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-101",
+      "name": "ブラッキーVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-125",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-187",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-210",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-222",
+      "name": "ピカチュウV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-223",
+      "name": "ピカチュウVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-233",
+      "name": "ミミッキュV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-234",
+      "name": "ミミッキュVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-244",
+      "name": "ブラッキーV"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-245",
+      "name": "ブラッキーVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "S8b-279",
+      "name": "ピカチュウVMAX"
+    },
+    {
+      "language": "ja",
+      "id": "SM10-036",
+      "name": "ミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "SM10a-009",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM10a-026",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "SM11b-016",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM11b-028",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SM11b-054",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM11b-058",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SM12-074",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-029",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-054",
+      "name": "ミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-063",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-109",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-187",
+      "name": "イーブイGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-188",
+      "name": "イーブイGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM12a-219",
+      "name": "イーブイGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM1M-037",
+      "name": "ブラッキーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM1M-048",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM1M-063",
+      "name": "ブラッキーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM1M-069",
+      "name": "ブラッキーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM1S-044",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM1p-041",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM2L-020",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SM3H-009",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "SM3H-011",
+      "name": "リザードンGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM3H-028",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "SM3H-052",
+      "name": "リザードンGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM3H-058",
+      "name": "リザードンGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM3N-013",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM3p-001",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "SM3p-029",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM3p-040",
+      "name": "ミュウツーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM3p-075",
+      "name": "ミュウツーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM3p-080",
+      "name": "ミュウツーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM3p-082",
+      "name": "ミュウツーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM4A-015",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM4p-028",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM4p-036",
+      "name": "ミュウツーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM4p-043",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SM4p-083",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM5M-037",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "SM5M-046",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM5S-048",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM5p-030",
+      "name": "ルカリオGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM5p-053",
+      "name": "ルカリオGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM5p-059",
+      "name": "ルカリオGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM6-020",
+      "name": "ゲッコウガGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM6-070",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM6-095",
+      "name": "ゲッコウガGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM6-103",
+      "name": "ゲッコウガGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM6a-001",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "SM6a-003",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "SM7b-038",
+      "name": "ミミッキュGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM7b-054",
+      "name": "ミミッキュGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM7b-060",
+      "name": "ミミッキュGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM8-058",
+      "name": "ブラッキー"
+    },
+    {
+      "language": "ja",
+      "id": "SM8-068",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-001",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-033",
+      "name": "ゲッコウガGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-056",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-095",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-105",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-166",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-182",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-201",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-209",
+      "name": "リザードンGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-216",
+      "name": "ゲッコウガGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-219",
+      "name": "ミュウツーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-224",
+      "name": "ルカリオGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM8b-229",
+      "name": "ブラッキーGX"
+    },
+    {
+      "language": "ja",
+      "id": "SM9-010",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9-011",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9-013",
+      "name": "リザードン"
+    },
+    {
+      "language": "ja",
+      "id": "SM9-020",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9-021",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9a-014",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9a-028",
+      "name": "ゲッコウガ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9b-008",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "SM9b-035",
+      "name": "ルカリオ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-001",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-031",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-032",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-033",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-059",
+      "name": "フシギダネ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-060",
+      "name": "ヒトカゲ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-061",
+      "name": "ゼニガメ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-062",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-067",
+      "name": "ブラッキー"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-074",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-098",
+      "name": "名探偵ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-120",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-156",
+      "name": "ミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-196",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-197",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-198",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-216",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-218",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-242",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-260",
+      "name": "トウホクのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-261",
+      "name": "ヒロシマのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV-P-289",
+      "name": "フクオカのピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV10-039",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "SV10-042",
+      "name": "ロケット団のミミッキュ"
+    },
+    {
+      "language": "ja",
+      "id": "SV10-114",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "SV10-125",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "SV10-130",
+      "name": "ロケット団のミュウツーex"
+    },
+    {
+      "language": "ja",
+      "id": "SV5M-023",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "SV8-122",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8-132",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8-136",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-092",
+      "name": "ブラッキー"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-093",
+      "name": "ブラッキーex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-125",
+      "name": "イーブイ"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-126",
+      "name": "イーブイex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-217",
+      "name": "ブラッキーex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-223",
+      "name": "イーブイex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-224",
+      "name": "イーブイex"
+    },
+    {
+      "language": "ja",
+      "id": "SV8a-236",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "WCS23-001",
+      "name": "ピカチュウex"
+    },
+    {
+      "language": "ja",
+      "id": "VS1-091",
+      "name": "カレンのウンブレオン"
+    },
+    {
+      "language": "ja",
+      "id": "VS1-097",
+      "name": "ランスのカリザード"
+    },
+    {
+      "language": "ja",
+      "id": "CP2-008",
+      "name": "ピカチュウEX"
+    },
+    {
+      "language": "ja",
+      "id": "E1-016",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "E1-071",
+      "name": "カリザード"
+    },
+    {
+      "language": "ja",
+      "id": "E1-086",
+      "name": "mewtwo"
+    },
+    {
+      "language": "ja",
+      "id": "E1-103",
+      "name": "カリザード"
+    },
+    {
+      "language": "ja",
+      "id": "E1-118",
+      "name": "mewtwo"
+    },
+    {
+      "language": "ja",
+      "id": "E2-058",
+      "name": "Eevee"
+    },
+    {
+      "language": "ja",
+      "id": "E2-067",
+      "name": "Umbreon -067/092"
+    },
+    {
+      "language": "ja",
+      "id": "E2-068",
+      "name": "Umbreon -068/092"
+    },
+    {
+      "language": "ja",
+      "id": "E4-033",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "E4-065",
+      "name": "Eevee"
+    },
+    {
+      "language": "ja",
+      "id": "E4-071",
+      "name": "Umbreon"
+    },
+    {
+      "language": "ja",
+      "id": "E4-072",
+      "name": "Umbreon"
+    },
+    {
+      "language": "ja",
+      "id": "E5-089",
+      "name": "カリザード"
+    },
+    {
+      "language": "ja",
+      "id": "neo1-036",
+      "name": "ピカチュウ"
+    },
+    {
+      "language": "ja",
+      "id": "neo2-040",
+      "name": "Umbreon"
+    },
+    {
+      "language": "ja",
+      "id": "neo2-049",
+      "name": "Eevee"
+    },
+    {
+      "language": "ja",
+      "id": "neo4-025",
+      "name": "輝くチャリザード"
+    },
+    {
+      "language": "ja",
+      "id": "neo4-068",
+      "name": "輝くミュウツー"
+    },
+    {
+      "language": "ja",
+      "id": "web1-025",
+      "name": "サーフィンピカチュ"
+    },
+    {
+      "language": "ja",
+      "id": "web1-042",
+      "name": "暗いカリザード"
+    }
+  ],
+  "deduplication": "Artwork-area pHash <=3 AND dHash <=4 within the same species; matching illustrators also allow pHash <=10 AND dHash <=10 to account for scan/hologram differences. Earliest printing represents each language/artwork slot; reprint aliases retained for pricing. Conservative perceptual deduplication may retain border cases."
+}
