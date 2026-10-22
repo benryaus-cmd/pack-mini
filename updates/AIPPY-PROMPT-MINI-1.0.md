@@ -1,10 +1,10 @@
 Create a SEPARATE PACK MINI Aippy game from the existing PACKVERSE host project, using the Node build-time importer. Keep the original PACKVERSE Aippy project available independently.
 
 Repository: https://github.com/benryaus-cmd/pack-mini
-Manifest: https://raw.githubusercontent.com/benryaus-cmd/pack-mini/main/updates/pack-mini-1.0.0.json
+Manifest: https://raw.githubusercontent.com/benryaus-cmd/pack-mini/3cc19ae88d236710918060e12089d3b9613962a2/updates/pack-mini-1.0.0.json
 Expected version: pack-mini-1.0.0
 
-Use Node fetch during build preparation, before loading Vite config, to read the manifest and replace the five hostFiles using manifest.baseUrl + source and each exact target. These update the importer, host validator, CSS scoper, outer App and ImportedGame adapter. Keep the existing Vite config, SDK plugins, aippyUserCompatibility loader, project-file manifest, and single-file bundling. Add matter-js to the host runtime dependencies.
+Use Node fetch during build preparation, before loading Vite config, to read the manifest and replace the five hostFiles using manifest.baseUrl + source and each exact target. These update the importer, host validator, CSS scoper, outer App and ImportedGame adapter. Set the host importer’s MANIFEST_URL to the same pinned manifest URL above so it cannot receive an older cached main-branch manifest. Keep the existing Vite config, SDK plugins, aippyUserCompatibility loader, project-file manifest, and single-file bundling. Add matter-js to the host runtime dependencies.
 
 The normal Vite build then downloads all 70 manifest.files as bytes, validates hashes, and promotes their relative targets to src/games/importedGame/upstream/. Sync public fonts through the importer. Card artwork loads directly from TCGdex low.webp/high.webp. Render one root through ImportedGame → upstream/src/App.tsx. The Mini adapter keeps radio off until its top-bar button is pressed; the old automatic host theme is replaced by session-only SomaFM PopTron.
 
