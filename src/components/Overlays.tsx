@@ -121,10 +121,10 @@ export function Inspector({
     !save.pending?.instances.includes(own.instanceId) &&
     !save.queued.some((p) => p.instances.includes(own.instanceId));
   async function share() {
-    const text = `I discovered ${card!.name} in PACKVERSE! ${set.name} · ${card!.rarity}`;
+    const text = `I discovered ${card!.name} in PACK MINI! ${set.name} · ${card!.rarity}`;
     try {
       if (navigator.share)
-        await navigator.share({ title: "PACKVERSE discovery", text });
+        await navigator.share({ title: "PACK MINI discovery", text });
       else if (navigator.clipboard) await navigator.clipboard.writeText(text);
     } catch {
       /* Share cancellation leaves the collection unchanged. */
@@ -803,7 +803,7 @@ export function SettingsPanel({
             url = URL.createObjectURL(blob),
             link = document.createElement("a");
           link.href = url;
-          link.download = "packverse-backup.json";
+          link.download = "pack-mini-backup.json";
           link.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         }}
@@ -816,7 +816,7 @@ export function SettingsPanel({
         </button>
       )}
       <p className="fine-print">
-        PACKVERSE 1.1 · {networkStatus}
+        PACK MINI 1.0 · {networkStatus}
         <br />
         TCGdex data. Pokémon artwork is temporary prototype content.
         <br />

@@ -161,7 +161,7 @@ function App() {
             onRetry={retryGame}
           />
         ) : !startupRequested ? (
-          <div className="game-startup-state" role="status">Preparing PACKVERSE…</div>
+          <div className="game-startup-state" role="status">Preparing PACK MINI…</div>
         ) : (
           <GameLoadBoundary
             key={gameAttempt}
@@ -169,7 +169,7 @@ function App() {
             onOpenProjectFiles={openProjectFiles}
             onRetry={retryGame}
           >
-            <Suspense fallback={<div className="game-startup-state" role="status">Loading PACKVERSE…</div>}>
+            <Suspense fallback={<div className="game-startup-state" role="status">Loading PACK MINI…</div>}>
               <LazyImportedGame
                 onOpenProjectFiles={openProjectFiles}
                 onGameReady={markGameMounted}

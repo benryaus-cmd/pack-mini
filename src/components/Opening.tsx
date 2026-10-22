@@ -93,10 +93,10 @@ export function Opening({
   }
   async function shareBest() {
     const def = cardById.get(best.cardId)!;
-    const text = `I pulled ${def.name} in PACKVERSE! ${set.name} · ${def.rarity}`;
+    const text = `I pulled ${def.name} in PACK MINI! ${set.name} · ${def.rarity}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "PACKVERSE · " + def.name, text });
+        await navigator.share({ title: "PACK MINI · " + def.name, text });
         setShareNotice("Shared your discovery.");
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
