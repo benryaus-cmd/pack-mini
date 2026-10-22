@@ -1,8 +1,8 @@
 {
   "version": "pack-mini-1.0.0",
   "mode": "full-snapshot",
-  "sourceCommit": "c4084d0d066483cc0b33a4acf3c569dd256a8230",
-  "baseUrl": "https://raw.githubusercontent.com/benryaus-cmd/pack-mini/c4084d0d066483cc0b33a4acf3c569dd256a8230/",
+  "sourceCommit": "eed5dc820b7d92c2be563d1dddf4964b24e88c15",
+  "baseUrl": "https://raw.githubusercontent.com/benryaus-cmd/pack-mini/eed5dc820b7d92c2be563d1dddf4964b24e88c15/",
   "entry": "src/App.tsx",
   "gameSlot": "game2",
   "files": [
@@ -32,7 +32,7 @@
       "target": "build/aippy-host/App.tsx.txt",
       "encoding": "utf-8",
       "bytes": 9258,
-      "sha256": "ab001b76bd2ab5124e77ccf6f134886225d6c831adab29fa91d8c2ffbf762f88"
+      "sha256": "349ccb26826a0c8707bcf5d5077f8c68596f4d18471dc4451193d7e14ab6a83e"
     },
     {
       "source": "build/aippy-host/ImportedGame.tsx.txt",
@@ -221,14 +221,14 @@
       "target": "src/components/Opening.tsx",
       "encoding": "utf-8",
       "bytes": 21980,
-      "sha256": "a3af77817cb60e1ab35235f9dd2b76c1fca485c731e5505d85bdd3f0e957475d"
+      "sha256": "f294a8eb9461159fc7fd14d016c8006559a7aed71db83db3637954aff2771be6"
     },
     {
       "source": "src/components/Overlays.tsx",
       "target": "src/components/Overlays.tsx",
       "encoding": "utf-8",
       "bytes": 25629,
-      "sha256": "291502c080ac111fe34f25f7a89774c9b5d8222c2ceed3a2799fb57bce63188b"
+      "sha256": "f5eaaa2ea3d4c06ed5fb3436eae6a1ee291b4381d3edc7112f1163b23d622cf7"
     },
     {
       "source": "src/components/Pages.tsx",
@@ -524,7 +524,7 @@
       "target": "src/App.tsx",
       "encoding": "utf-8",
       "bytes": 9258,
-      "sha256": "ab001b76bd2ab5124e77ccf6f134886225d6c831adab29fa91d8c2ffbf762f88"
+      "sha256": "349ccb26826a0c8707bcf5d5077f8c68596f4d18471dc4451193d7e14ab6a83e"
     },
     {
       "source": "build/aippy-host/ImportedGame.tsx.txt",
