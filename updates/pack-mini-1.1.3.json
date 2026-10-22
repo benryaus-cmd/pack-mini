@@ -1,0 +1,579 @@
+{
+  "version": "pack-mini-1.1.3",
+  "mode": "full-snapshot",
+  "sourceCommit": "01f5be46521af0b1dadcda0638b843cf1cc787f3",
+  "baseUrl": "https://raw.githubusercontent.com/benryaus-cmd/pack-mini/01f5be46521af0b1dadcda0638b843cf1cc787f3/",
+  "entry": "src/App.tsx",
+  "gameSlot": "game2",
+  "files": [
+    {
+      "source": "AIPPY-IMPORT.md",
+      "target": "AIPPY-IMPORT.md",
+      "encoding": "utf-8",
+      "bytes": 1055,
+      "sha256": "447f39c0c7e041074005eec40b85c6c30499d8ed6015a51e7582ae7c07d4365d"
+    },
+    {
+      "source": "ASSET-CREDITS.md",
+      "target": "ASSET-CREDITS.md",
+      "encoding": "utf-8",
+      "bytes": 1697,
+      "sha256": "b3de53a45df8de174c76e28f2fd33a304b441d1e3bc8c74e4d6632801e37bd66"
+    },
+    {
+      "source": "README.md",
+      "target": "README.md",
+      "encoding": "utf-8",
+      "bytes": 8365,
+      "sha256": "8263d1320b101f7f71afd5373c775cc0845a07e06ba5407902c893f5126c078e"
+    },
+    {
+      "source": "build/aippy-host/App.tsx.txt",
+      "target": "build/aippy-host/App.tsx.txt",
+      "encoding": "utf-8",
+      "bytes": 13301,
+      "sha256": "8d8b698a9f0460387abf642cb0cebae0ed03f4066a8bbeb829cd60c187c0e49b"
+    },
+    {
+      "source": "build/aippy-host/ImportedGame.tsx.txt",
+      "target": "build/aippy-host/ImportedGame.tsx.txt",
+      "encoding": "utf-8",
+      "bytes": 469,
+      "sha256": "8dddddbffff2d10320cce350c1db82fc7cbdbd49149c21ab9995d9fa85f653eb"
+    },
+    {
+      "source": "build/aippy-host/packverse-host-patches.ts",
+      "target": "build/aippy-host/packverse-host-patches.ts",
+      "encoding": "utf-8",
+      "bytes": 668,
+      "sha256": "615d8183721093b5a9b68f07a683f9d208d45703bc4d9360e95ebe058d19856e"
+    },
+    {
+      "source": "build/aippy-host/vite-plugin-github-import.ts",
+      "target": "build/aippy-host/vite-plugin-github-import.ts",
+      "encoding": "utf-8",
+      "bytes": 17439,
+      "sha256": "1b28b09daadf8518ff2b0661662d296a3b08bf541abbd2fd8e3c08e6166b86b6"
+    },
+    {
+      "source": "build/aippy-host/vite-plugin-packverse-css.ts",
+      "target": "build/aippy-host/vite-plugin-packverse-css.ts",
+      "encoding": "utf-8",
+      "bytes": 6058,
+      "sha256": "382e79383657c1ea2523daeb349e46ece0aca6ec2eca1276ab01ea8fcebf6c28"
+    },
+    {
+      "source": "build/aippy-user-compat.ts",
+      "target": "build/aippy-user-compat.ts",
+      "encoding": "utf-8",
+      "bytes": 824,
+      "sha256": "ca99f72f334e3cbb5f004682dc56a70e88c935591afeb4dc7dfe1e50b8c99038"
+    },
+    {
+      "source": "index.html",
+      "target": "index.html",
+      "encoding": "utf-8",
+      "bytes": 510,
+      "sha256": "9965cc210a95146a0f33f5f48841ba4e95ab57d075511d2189c7e5b65c389d85"
+    },
+    {
+      "source": "package-lock.json",
+      "target": "package-lock.json",
+      "encoding": "utf-8",
+      "bytes": 77823,
+      "sha256": "0b5768f8e6ab88d06268b04c53a27959eae1e1787cf09264893cad4d007c73e2"
+    },
+    {
+      "source": "package.json",
+      "target": "package.json",
+      "encoding": "utf-8",
+      "bytes": 1544,
+      "sha256": "a5618ac2574dbcc9f2c3487446531618595b30896baaf2866eac149571a29502"
+    },
+    {
+      "source": "public/fonts/BARLOW-LICENSE.txt",
+      "target": "public/fonts/BARLOW-LICENSE.txt",
+      "encoding": "utf-8",
+      "bytes": 6167,
+      "sha256": "046ee27d8bddc6b6ee08eee53c96dbf3ec1f6df561644e018507dd8ffcb11d31"
+    },
+    {
+      "source": "public/fonts/DM-SANS-LICENSE.txt",
+      "target": "public/fonts/DM-SANS-LICENSE.txt",
+      "encoding": "utf-8",
+      "bytes": 4502,
+      "sha256": "6fbd040a29c2037a765dfb9f2561e9965b5c95c6dcb5dce516089d63d5f17af7"
+    },
+    {
+      "source": "public/fonts/barlow-condensed-latin-500-normal.woff2",
+      "target": "public/fonts/barlow-condensed-latin-500-normal.woff2",
+      "encoding": "binary",
+      "bytes": 21424,
+      "sha256": "460f141ec8f6c9a1516bfd2bd9fe71656246d7a9d04a0955faf53158d8970c4c"
+    },
+    {
+      "source": "public/fonts/barlow-condensed-latin-600-normal.woff2",
+      "target": "public/fonts/barlow-condensed-latin-600-normal.woff2",
+      "encoding": "binary",
+      "bytes": 22308,
+      "sha256": "215a93c696f442034a46fbb382958f753fda60e30490683aeea6b235fcbb2b66"
+    },
+    {
+      "source": "public/fonts/barlow-condensed-latin-700-normal.woff2",
+      "target": "public/fonts/barlow-condensed-latin-700-normal.woff2",
+      "encoding": "binary",
+      "bytes": 22444,
+      "sha256": "3787a5a419171630e6890cfa47c4da067474d005cd0ff8dc11ec090fdc3ee2b8"
+    },
+    {
+      "source": "public/fonts/barlow-condensed-latin-800-normal.woff2",
+      "target": "public/fonts/barlow-condensed-latin-800-normal.woff2",
+      "encoding": "binary",
+      "bytes": 22464,
+      "sha256": "2515494e8cc2ca07c86ea78766cfa104b796aa6ed5d66821c01d51dbb0b52bce"
+    },
+    {
+      "source": "public/fonts/dm-sans-latin-400-normal.woff2",
+      "target": "public/fonts/dm-sans-latin-400-normal.woff2",
+      "encoding": "binary",
+      "bytes": 14200,
+      "sha256": "4ab51eb2cd7305d177187908d6397474d4520663f6c6e572feb0a64f4fa80006"
+    },
+    {
+      "source": "public/fonts/dm-sans-latin-500-normal.woff2",
+      "target": "public/fonts/dm-sans-latin-500-normal.woff2",
+      "encoding": "binary",
+      "bytes": 14304,
+      "sha256": "19bf1984956517c35c2bd35b6cdedac12a21d6fcd3596c614ecdfb88b648909d"
+    },
+    {
+      "source": "public/fonts/dm-sans-latin-600-normal.woff2",
+      "target": "public/fonts/dm-sans-latin-600-normal.woff2",
+      "encoding": "binary",
+      "bytes": 14144,
+      "sha256": "6bb2b2645ba5eeaecf56322c543fa3a75b87b927977b9c03b1dabc4205089120"
+    },
+    {
+      "source": "public/fonts/dm-sans-latin-700-normal.woff2",
+      "target": "public/fonts/dm-sans-latin-700-normal.woff2",
+      "encoding": "binary",
+      "bytes": 14348,
+      "sha256": "35c5efa0e5daa52ee5c6500f5be354bf751fb65c4e49e1d6806c6eb5883e8fe9"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "src/App.tsx",
+      "encoding": "utf-8",
+      "bytes": 25512,
+      "sha256": "194335ed4bf063025821bbf4abd9ee5264a417461f1a2df91ba59bdd3867c518"
+    },
+    {
+      "source": "src/assets/audio/card-flick.mp3",
+      "target": "src/assets/audio/card-flick.mp3",
+      "encoding": "binary",
+      "bytes": 12292,
+      "sha256": "f62e6cab41a9c0a8c67b5752c95e80e6adc681110d579ada982627909be1773d"
+    },
+    {
+      "source": "src/assets/audio/foil-crinkle.mp3",
+      "target": "src/assets/audio/foil-crinkle.mp3",
+      "encoding": "binary",
+      "bytes": 20330,
+      "sha256": "0c1e7b561932d69abf569833f831e6095f85520faa884d495f7c1a465a3a1c0b"
+    },
+    {
+      "source": "src/assets/audio/foil-open.mp3",
+      "target": "src/assets/audio/foil-open.mp3",
+      "encoding": "binary",
+      "bytes": 25843,
+      "sha256": "1bb7e2bd76b844408fa02120df6a5278d59d961e85223d3470d868711ab01955"
+    },
+    {
+      "source": "src/components/Arcade.tsx",
+      "target": "src/components/Arcade.tsx",
+      "encoding": "utf-8",
+      "bytes": 12672,
+      "sha256": "abda5a4c9179af821adc971f86f510feae431d4af6d7b6cbb73103eaea7b5301"
+    },
+    {
+      "source": "src/components/BoosterPack.tsx",
+      "target": "src/components/BoosterPack.tsx",
+      "encoding": "utf-8",
+      "bytes": 1517,
+      "sha256": "8fa7ca204b8dda112cf533836a7449ae3c06cfe5ad4a76d07e68c5a4897fc946"
+    },
+    {
+      "source": "src/components/CardView.tsx",
+      "target": "src/components/CardView.tsx",
+      "encoding": "utf-8",
+      "bytes": 5857,
+      "sha256": "c1130fbf4eb54b21de87d709b6336a476ca85e4d36ef6a7b48ddc38766eeac6f"
+    },
+    {
+      "source": "src/components/Modal.tsx",
+      "target": "src/components/Modal.tsx",
+      "encoding": "utf-8",
+      "bytes": 2215,
+      "sha256": "9706fa6273847d2939381a7c3c304e5982a294486289b7a3a78fb22cf6684831"
+    },
+    {
+      "source": "src/components/Opening.tsx",
+      "target": "src/components/Opening.tsx",
+      "encoding": "utf-8",
+      "bytes": 25579,
+      "sha256": "7a9084874ee775b32b61cf5a12d5da43fa3ffa940dafefb99e9076a101f820eb"
+    },
+    {
+      "source": "src/components/Overlays.tsx",
+      "target": "src/components/Overlays.tsx",
+      "encoding": "utf-8",
+      "bytes": 27767,
+      "sha256": "f915923451a19b33ea9ec245cfa52df12bd652a5013329e9ae7ed4a3bb8064be"
+    },
+    {
+      "source": "src/components/Pages.tsx",
+      "target": "src/components/Pages.tsx",
+      "encoding": "utf-8",
+      "bytes": 18186,
+      "sha256": "6cb3c6ef13ff60f9f01f76a3152c2ff038a60e48ea97acf03203a28add1b96f0"
+    },
+    {
+      "source": "src/components/Radio.tsx",
+      "target": "src/components/Radio.tsx",
+      "encoding": "utf-8",
+      "bytes": 670,
+      "sha256": "b3f25005c8eae245f0462606a7e5ccba71f1a88b0f8231092fe86418afcf1fcb"
+    },
+    {
+      "source": "src/components/Social.tsx",
+      "target": "src/components/Social.tsx",
+      "encoding": "utf-8",
+      "bytes": 28543,
+      "sha256": "a340813f99964ff098ddca44e244ad68f107220630c67c1b4f6824014ed8cdd5"
+    },
+    {
+      "source": "src/components/Trades.tsx",
+      "target": "src/components/Trades.tsx",
+      "encoding": "utf-8",
+      "bytes": 9684,
+      "sha256": "c3f0aa3cd8e59f49f2505619cac8a8e93bd28e89fc33accb8196a10bd1f3f0f4"
+    },
+    {
+      "source": "src/game/achievements.ts",
+      "target": "src/game/achievements.ts",
+      "encoding": "utf-8",
+      "bytes": 2384,
+      "sha256": "480a28b5e336f0a4556490ab8ee39d30690541fe1afd91f8ac3727487afb0aad"
+    },
+    {
+      "source": "src/game/arcade.ts",
+      "target": "src/game/arcade.ts",
+      "encoding": "utf-8",
+      "bytes": 5301,
+      "sha256": "84730450856a0fc500e6a00deecaf6541a18f32da26faa813b7af594ac81fa7c"
+    },
+    {
+      "source": "src/game/binders.ts",
+      "target": "src/game/binders.ts",
+      "encoding": "utf-8",
+      "bytes": 2787,
+      "sha256": "ae4947903b13001faf320ca85ee0a9ce5e22c3d497f4a209f99286203ae15582"
+    },
+    {
+      "source": "src/game/catalogue.ts",
+      "target": "src/game/catalogue.ts",
+      "encoding": "utf-8",
+      "bytes": 2730,
+      "sha256": "d85472b333a17eff999ac7e83386ff9c0676fa2699f4f79b62d033ae21722ff0"
+    },
+    {
+      "source": "src/game/copies.ts",
+      "target": "src/game/copies.ts",
+      "encoding": "utf-8",
+      "bytes": 473,
+      "sha256": "5230916b52ec2df91b7a233ff2ae254b2595be8c3e97b64421b085145c84bcbc"
+    },
+    {
+      "source": "src/game/engine.ts",
+      "target": "src/game/engine.ts",
+      "encoding": "utf-8",
+      "bytes": 12213,
+      "sha256": "9d6b3cf1c1b3e6ad3d45d14addb16826b309b456b4d94ce621e73595617594b4"
+    },
+    {
+      "source": "src/game/finishes.ts",
+      "target": "src/game/finishes.ts",
+      "encoding": "utf-8",
+      "bytes": 905,
+      "sha256": "ff9ec608c669c07df4281c37f9cc96e3525d21182524a91dd535cefb3ad9b492"
+    },
+    {
+      "source": "src/game/grading.ts",
+      "target": "src/game/grading.ts",
+      "encoding": "utf-8",
+      "bytes": 923,
+      "sha256": "f1797b903061b3b103fb329c87533d858925db982b1f40c4a5afa5f7c0dea55a"
+    },
+    {
+      "source": "src/game/mini-cards.json",
+      "target": "src/game/mini-cards.json",
+      "encoding": "utf-8",
+      "bytes": 306994,
+      "sha256": "928b80357d5ff9a8e7c9ffc47f9c179b3258f6d7c8173b2a048fd1609620df6c"
+    },
+    {
+      "source": "src/game/plinko.ts",
+      "target": "src/game/plinko.ts",
+      "encoding": "utf-8",
+      "bytes": 2726,
+      "sha256": "0f9d46e6e008c575a304ea0973f0acd7a3948b299b6099ccfe48eac33ca97d61"
+    },
+    {
+      "source": "src/game/products.ts",
+      "target": "src/game/products.ts",
+      "encoding": "utf-8",
+      "bytes": 2644,
+      "sha256": "c0cabe943c31fc523933213decafc0bf850491905776ee1a380d5d9f8a36a38f"
+    },
+    {
+      "source": "src/game/selling.ts",
+      "target": "src/game/selling.ts",
+      "encoding": "utf-8",
+      "bytes": 1890,
+      "sha256": "1f05a069aac8704a062ae62bbc7069af7d5e1c31ec4af1792fd8a4d4d300717d"
+    },
+    {
+      "source": "src/game/social.ts",
+      "target": "src/game/social.ts",
+      "encoding": "utf-8",
+      "bytes": 4706,
+      "sha256": "80e33124cb4d91da0b1475224d8299e2866678821aa42ade953504adf1cdf8ac"
+    },
+    {
+      "source": "src/game/trading.ts",
+      "target": "src/game/trading.ts",
+      "encoding": "utf-8",
+      "bytes": 5282,
+      "sha256": "02180bbe266bf1590cfbac1a052efb831110f3690a8af7d26340205be85190f6"
+    },
+    {
+      "source": "src/game/types.ts",
+      "target": "src/game/types.ts",
+      "encoding": "utf-8",
+      "bytes": 3530,
+      "sha256": "0d52cac6bb664d5d6f70645f9b6aef29a782e4fae42b58e90f31fc3a95b6ad60"
+    },
+    {
+      "source": "src/game/uuid.ts",
+      "target": "src/game/uuid.ts",
+      "encoding": "utf-8",
+      "bytes": 892,
+      "sha256": "2d44c09e62bba9be3805ab009444a8e3d7512ab9c8b5595aae3b03b592300850"
+    },
+    {
+      "source": "src/main.tsx",
+      "target": "src/main.tsx",
+      "encoding": "utf-8",
+      "bytes": 910,
+      "sha256": "985c466a172c5bfbfcd8c883c539d2f544c72768ee66d21582535e86120f586b"
+    },
+    {
+      "source": "src/services/audio.ts",
+      "target": "src/services/audio.ts",
+      "encoding": "utf-8",
+      "bytes": 4100,
+      "sha256": "9f74e59bc68356b0c282b74c5135d2bd88a28169dcce7f30cbb7c6516d310149"
+    },
+    {
+      "source": "src/services/audioPolicy.ts",
+      "target": "src/services/audioPolicy.ts",
+      "encoding": "utf-8",
+      "bytes": 522,
+      "sha256": "e55d4d5ecf60e9f3f52532f3bcff8a824babbce837a1827c09c730075b127d6e"
+    },
+    {
+      "source": "src/services/cardAssets.ts",
+      "target": "src/services/cardAssets.ts",
+      "encoding": "utf-8",
+      "bytes": 3485,
+      "sha256": "fed527bb8035e144f06c73ee8f450c2e36ae66fe9a6a11a153c9574eabd3a2b6"
+    },
+    {
+      "source": "src/services/multiplayer.ts",
+      "target": "src/services/multiplayer.ts",
+      "encoding": "utf-8",
+      "bytes": 19764,
+      "sha256": "d36115006a6cbe6b1d803af880194daeeff2bf289799cf497c42e64fe38d5441"
+    },
+    {
+      "source": "src/services/persistence.ts",
+      "target": "src/services/persistence.ts",
+      "encoding": "utf-8",
+      "bytes": 3917,
+      "sha256": "531b18e603913b34770f61326e472d81065c083264a3c4648b4e647a963c463c"
+    },
+    {
+      "source": "src/services/pricing.ts",
+      "target": "src/services/pricing.ts",
+      "encoding": "utf-8",
+      "bytes": 11755,
+      "sha256": "a1122c872d9e36bb3cfd4c283f8faaed4e2d0946901c337f6a921a4612507c23"
+    },
+    {
+      "source": "src/services/protocol.ts",
+      "target": "src/services/protocol.ts",
+      "encoding": "utf-8",
+      "bytes": 3936,
+      "sha256": "9036f0b27a75d9c5fb916da06e441d71420e13e58bc0987b18489ff67326b8c6"
+    },
+    {
+      "source": "src/services/radio.ts",
+      "target": "src/services/radio.ts",
+      "encoding": "utf-8",
+      "bytes": 5370,
+      "sha256": "4e79a5e1a63c0f164e958c352175fab4c05a87ae07f8076b3f264b92edd7daf8"
+    },
+    {
+      "source": "src/services/social.ts",
+      "target": "src/services/social.ts",
+      "encoding": "utf-8",
+      "bytes": 11199,
+      "sha256": "a611d789b618e588fe82f1812652b16123a532da16febc6ac36ab8b271412c7d"
+    },
+    {
+      "source": "src/services/tradeExchange.ts",
+      "target": "src/services/tradeExchange.ts",
+      "encoding": "utf-8",
+      "bytes": 13071,
+      "sha256": "c2a7231657bb6324d7e22f1eb4b8ea8ffdd10de66f7a0768574cc445aeb4ef7e"
+    },
+    {
+      "source": "src/services/tradeRecords.ts",
+      "target": "src/services/tradeRecords.ts",
+      "encoding": "utf-8",
+      "bytes": 4758,
+      "sha256": "2f943d1cf26d7fd3eba28489578c764c933ff0f529336b1173971b4685252dc0"
+    },
+    {
+      "source": "src/services/trading.ts",
+      "target": "src/services/trading.ts",
+      "encoding": "utf-8",
+      "bytes": 26385,
+      "sha256": "0ad8990b99823ff2e6f383ceea72e8e741194a73b57f20b0aa8352c0303a1634"
+    },
+    {
+      "source": "src/services/useGame.ts",
+      "target": "src/services/useGame.ts",
+      "encoding": "utf-8",
+      "bytes": 3453,
+      "sha256": "03dee5ceff7dbaa832256238b41abe48fa2442f7328f19ed7f8044c85be3fe9e"
+    },
+    {
+      "source": "src/styles/app.css",
+      "target": "src/styles/app.css",
+      "encoding": "utf-8",
+      "bytes": 68803,
+      "sha256": "a0c7f70d0713e5855171c3f13c6a7c9f4935dd11101cd05ee15efbef3973c1f5"
+    },
+    {
+      "source": "src/styles/arcade.css",
+      "target": "src/styles/arcade.css",
+      "encoding": "utf-8",
+      "bytes": 5794,
+      "sha256": "60a60b72e0bc5901530cd2ab6e3c5d1676d7ad884d0c5cd51d8029feeaacf7c2"
+    },
+    {
+      "source": "src/styles/card-experience.css",
+      "target": "src/styles/card-experience.css",
+      "encoding": "utf-8",
+      "bytes": 3623,
+      "sha256": "d57e5b4366dec3a190d8e75e88245bb5563f040a11fa8f01edf8e29c19e0bf48"
+    },
+    {
+      "source": "src/styles/collection-update.css",
+      "target": "src/styles/collection-update.css",
+      "encoding": "utf-8",
+      "bytes": 3601,
+      "sha256": "456864a9188f9e2537122c2eeac510b315a4be1be933c3920c6f43b5ece7e804"
+    },
+    {
+      "source": "src/styles/mini-social.css",
+      "target": "src/styles/mini-social.css",
+      "encoding": "utf-8",
+      "bytes": 6740,
+      "sha256": "e2cd9870d7c5bd1f0e051e598a4de0b862e94000c2425f5c6f09747a1077c4a5"
+    },
+    {
+      "source": "src/styles/mini-update.css",
+      "target": "src/styles/mini-update.css",
+      "encoding": "utf-8",
+      "bytes": 11530,
+      "sha256": "5bb76ae76ebd37bb9afb51f8be5f7e151469b5959fd2530f99f887a15aa39762"
+    },
+    {
+      "source": "src/styles/mini.css",
+      "target": "src/styles/mini.css",
+      "encoding": "utf-8",
+      "bytes": 11511,
+      "sha256": "b3e2b0fe55ae091c051b16af04303d82f2830e8ea381f82e128478f1116ddb1b"
+    },
+    {
+      "source": "src/styles/social-update.css",
+      "target": "src/styles/social-update.css",
+      "encoding": "utf-8",
+      "bytes": 1791,
+      "sha256": "b27df9f0659ff0e23f5b8e7c345cc71a49df7faac540b12ade0f1c03fce5da15"
+    },
+    {
+      "source": "tsconfig.json",
+      "target": "tsconfig.json",
+      "encoding": "utf-8",
+      "bytes": 407,
+      "sha256": "aaf6e7fb0290f50482e48ab4f6653d9ee83b44e951daeb831ad0a901466c7c2a"
+    },
+    {
+      "source": "vite.config.ts",
+      "target": "vite.config.ts",
+      "encoding": "utf-8",
+      "bytes": 310,
+      "sha256": "620cda9858af6de6e43f7a769a8116a10668d92a1aed7a841c0233cc8707c9cf"
+    }
+  ],
+  "hostFiles": [
+    {
+      "source": "build/aippy-host/vite-plugin-github-import.ts",
+      "target": "vite-plugin-github-import.ts",
+      "encoding": "utf-8",
+      "bytes": 17439,
+      "sha256": "1b28b09daadf8518ff2b0661662d296a3b08bf541abbd2fd8e3c08e6166b86b6"
+    },
+    {
+      "source": "build/aippy-host/packverse-host-patches.ts",
+      "target": "packverse-host-patches.ts",
+      "encoding": "utf-8",
+      "bytes": 668,
+      "sha256": "615d8183721093b5a9b68f07a683f9d208d45703bc4d9360e95ebe058d19856e"
+    },
+    {
+      "source": "build/aippy-host/vite-plugin-packverse-css.ts",
+      "target": "vite-plugin-packverse-css.ts",
+      "encoding": "utf-8",
+      "bytes": 6058,
+      "sha256": "382e79383657c1ea2523daeb349e46ece0aca6ec2eca1276ab01ea8fcebf6c28"
+    },
+    {
+      "source": "build/aippy-host/App.tsx.txt",
+      "target": "src/App.tsx",
+      "encoding": "utf-8",
+      "bytes": 13301,
+      "sha256": "8d8b698a9f0460387abf642cb0cebae0ed03f4066a8bbeb829cd60c187c0e49b"
+    },
+    {
+      "source": "build/aippy-host/ImportedGame.tsx.txt",
+      "target": "src/games/importedGame/ImportedGame.tsx",
+      "encoding": "utf-8",
+      "bytes": 469,
+      "sha256": "8dddddbffff2d10320cce350c1db82fc7cbdbd49149c21ab9995d9fa85f653eb"
+    }
+  ]
+}
