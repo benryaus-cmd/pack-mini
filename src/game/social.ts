@@ -22,6 +22,8 @@ export type SocialEntry = {
   vote?: 1 | -1 | 0;
   parent?: string;
   target?: string;
+  device?: string;
+  receive?: SocialCard[];
   cards?: SocialCard[];
   mode?: "showcase" | "trade";
   withdrawn?: boolean;

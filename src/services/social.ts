@@ -1,3 +1,4 @@
+import { collectionDevice } from "./tradeExchange";
 import { useEffect, useSyncExternalStore } from "react";
 import type { Game } from "./useGame";
 import { multiplayer, ApiError } from "./multiplayer";
@@ -236,7 +237,7 @@ class SocialService {
       new Set(cards.map((c) => c.instanceId)).size !== cards.length
     )
       throw Error("Choose one to three different cards");
-    return this.emit({ kind: "post", mode, cards });
+    return this.emit({ kind: "post", mode, cards, device: collectionDevice() });
   }
   withdraw(post: SocialEntry) {
     const current = this.state.entries.find(
@@ -266,6 +267,8 @@ class SocialService {
       throw Error("Both collectors must be online to offer.");
     return this.emit({
       kind: "offer",
+      device: collectionDevice(),
+      receive: parent.cards,
       parent: parent.kind === "post" ? parent.id : parent.parent,
       target,
       cards: cards.slice(0, 3),

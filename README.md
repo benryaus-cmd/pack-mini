@@ -30,6 +30,12 @@ Coin Drop locks one 1–5-ball batch until all settle and retains its aggregate 
 
 The public server/room editor is removed; MINI connects to its configured game2 lobby. Chat leaves 3% side gutters for page scrolling. Confirmations use the existing generic trading store, with the existing social store as fallback when the trading route rejects writes. The server receipt precedes a ready notification. Reopened local-only confirmations show Retry or Cancel unsent trade; cancellation is persisted before releasing exact-copy reservations. Confirmations already on the server remain reserved for recovery. Existing saves and grades stay intact.
 
+## 1.1.2 trade completion
+
+Submitting a social offer authorizes the exact offered copies for the exact requested cards on that device. The listing owner reviews and confirms once; the offering client verifies its authorization and current inventory automatically. A shared owner-written record commits or aborts the swap; the offering device applies first and publishes its receipt before the accepting device applies. Repeated packets/reloads remain idempotent. Bundles use small routing packets and fetch validated terms from the existing social store.
+
+Trades close automatically after30seconds. Expired, verified unsent legacy journals are cancelled even when writes definitively return404; Cancel/Close always frees the foreground. Sent or uncertain exchanges keep only their exact-card reservations in background while unrelated cards remain tradable. A committed exchange completes through recovery rather than returning exchanged cards. Pending journals and unapplied receipts survive bounded history pruning. Device IDs distinguish separate local collections under the same Aippy account. Pre1.1.2 offers need resubmitting to authorize the new automatic flow; existing confirmed trades use legacy recovery.
+
 ## Run and verify
 
 Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`, `npm run test:update`, `npm run test:arcade`, `npm run test:trade-failures`. `CHROMIUM_PATH` selects an installed browser.

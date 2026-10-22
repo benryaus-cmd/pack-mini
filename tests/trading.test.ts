@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { initialSave, recycle } from "../src/game/engine.ts";
 import {
+  lockedTradeIds,
   prepareTrade,
   completeTrade,
   cancelPreparedTrade,
@@ -69,4 +70,77 @@ test("terminal journals cannot be reconfirmed or revived by delayed packets", ()
     completeTrade(p, terms, "a"),
   ])
     assert.throws(() => prepareTrade(s, terms, "a"), /already ended/);
+});
+
+test("a background reservation permits a new swap of different exact copies", () => {
+  const a = {
+    instanceId: "a",
+    cardId: "a",
+    setId: "s",
+    finish: "gloss" as const,
+    tier: 0 as const,
+    obtainedAt: 1,
+    openingId: "p",
+  };
+  const b = { ...a, instanceId: "b" },
+    c = { ...a, instanceId: "c" };
+  const save = { ...initialSave(), owned: [a, c] };
+  const first = {
+    id: "old",
+    parties: ["alice", "bob"] as [string, string],
+    offers: { alice: [a], bob: [b] },
+  };
+  const second = {
+    id: "new",
+    parties: ["alice", "carol"] as [string, string],
+    offers: { alice: [c], carol: [b] },
+  };
+  const reserved = prepareTrade(save, first, "alice");
+  assert.doesNotThrow(() => prepareTrade(reserved, second, "alice"));
+  assert.throws(() =>
+    prepareTrade(
+      reserved,
+      { ...second, offers: { alice: [a], carol: [b] } },
+      "alice",
+    ),
+  );
+});
+
+test("many later cancelled attempts cannot evict an unresolved committed exchange", () => {
+  const a = {
+    instanceId: "reserved",
+    cardId: "a",
+    setId: "s",
+    finish: "gloss" as const,
+    tier: 0 as const,
+    obtainedAt: 1,
+    openingId: "p",
+  };
+  const terms = {
+    id: "committed",
+    protocol: 2 as const,
+    parties: ["alice", "bob"] as [string, string],
+    offers: { alice: [a], bob: [{ ...a, instanceId: "b" }] },
+  };
+  let s = prepareTrade({ ...initialSave(), owned: [a] }, terms, "alice");
+  for (let i = 0; i < 150; i++)
+    s = cancelPreparedTrade(s, "cancel-" + i, { ...terms, id: "cancel-" + i });
+  assert(s.trades?.some((t) => t.id === "committed" && t.status === "ready"));
+  assert(lockedTradeIds(s).has("reserved"));
+});
+
+test("device-bound terms keep their digest when stored object keys are reordered", () => {
+  const t = {
+    id: "sort",
+    protocol: 2 as const,
+    parties: ["alice", "bob"] as [string, string],
+    offers: { alice: [a], bob: [b] },
+    devices: { alice: "device-a", bob: "device-b" },
+    offerId: "offer",
+    expiresAt: 1000,
+  };
+  assert.equal(
+    tradeDigest(t),
+    tradeDigest({ ...t, devices: { bob: "device-b", alice: "device-a" } }),
+  );
 });

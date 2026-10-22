@@ -124,10 +124,7 @@ try {
       "cards stay reserved until a safe decision is recorded",
     );
     await b.decline();
-    check(
-      b.snapshot().session.status === "cancelled",
-      "stuck local trade can be cancelled",
-    );
+    check(b.snapshot().session === null, "stuck local trade can be closed");
     check(
       lockedTradeIds(old.save).size === 0,
       "cancellation releases the exact reserved copies",
@@ -157,6 +154,31 @@ try {
       fresh.save.owned[0].instanceId === "a",
       "failed confirmation preserves ownership",
     );
+    // Existing old journal: every trade storage route returns404. It must stop blocking.
+    const aged = game(
+      prepareTrade(game().save, { ...terms, id: "d".repeat(20) }, me),
+    );
+    aged.save.trades[0].at = Date.now() - 60000;
+    const expired = new Trading();
+    expired.bind(aged);
+    await expired.recover();
+    check(
+      expired.snapshot().session === null,
+      "expired legacy ghost must not reopen",
+    );
+    check(
+      lockedTradeIds(aged.save).size === 0,
+      "expired unpublished legacy copy is released even when writes404",
+    );
+    check(
+      aged.save.owned[0].instanceId === "a",
+      "old trade cleanup keeps the original copy",
+    );
+    expired.invite(other, ["a"], ["b"]);
+    check(
+      expired.snapshot().session.status === "draft",
+      "new trade is available after old404 cleanup",
+    );
     rejectAll = false;
     records.clear();
     const wire = multiplayer.request;
@@ -185,13 +207,14 @@ try {
         }),
     );
     check(
-      uncertain.snapshot().session.status !== "cancelled",
+      uncertain.snapshot().session?.status !== "cancelled",
       "published confirmation cannot be cancelled as unsent",
     );
     await uncertain.recover();
     check(
-      uncertain.snapshot().session.status === "settling",
-      "lost acknowledgement recovers the persisted ready receipt",
+      uncertain.snapshot().session === null &&
+        lockedTradeIds(reserved.save).has("a"),
+      "lost acknowledgement recovers in background without blocking the trade screen",
     );
     return [
       "missing endpoint fallback",

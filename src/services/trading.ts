@@ -1,3 +1,10 @@
+import {
+  TradeExchange,
+  collectionDevice,
+  type ExchangeTerms,
+} from "./tradeExchange";
+import { social } from "./social";
+import { livePosts, type SocialEntry, type SocialCard } from "../game/social";
 import { TradeRecords, TradeRecordError } from "./tradeRecords";
 import { generateId } from "../game/uuid";
 import { useEffect, useSyncExternalStore } from "react";
@@ -6,6 +13,7 @@ import type { OwnedCard, Save } from "../game/types";
 import { cardById } from "../game/catalogue";
 import { multiplayer } from "./multiplayer";
 import {
+  retainTradeJournals,
   prepareTrade,
   completeTrade,
   cancelPreparedTrade,
@@ -32,6 +40,164 @@ class Trading {
   private requestedFor = "";
   private prefilled = new Set<string>();
   private epoch = 0;
+  private exchange: TradeExchange | null = null;
+  private dismissed = new Set<string>();
+  private visibleSince = 0;
+  private fast() {
+    if (this.exchange) return this.exchange;
+    const check = this.guard();
+    const same = (a: SocialCard[] = [], b: SocialCard[] = []) =>
+      JSON.stringify(
+        a.map((c) => [c.instanceId, c.cardId, c.finish, c.ham ?? null]).sort(),
+      ) ===
+      JSON.stringify(
+        b.map((c) => [c.instanceId, c.cardId, c.finish, c.ham ?? null]).sort(),
+      );
+    this.exchange = new TradeExchange({
+      player: () => {
+        check();
+        return this.me();
+      },
+      device: collectionDevice,
+      save: () => {
+        check();
+        return this.game!.save!;
+      },
+      update: async (fn) => {
+        check();
+        const saved = await this.game!.update(fn);
+        check();
+        this.game = { ...this.game!, save: saved };
+        return saved;
+      },
+      now: Date.now,
+      online: () => multiplayer.snapshot().status === "online",
+      request: (path, options) => {
+        check();
+        return multiplayer.request(path, options);
+      },
+      send: (packet) => {
+        check();
+        return multiplayer.send("exchange", packet);
+      },
+      authorize: (t) => {
+        check();
+        const entries = social.snapshot().entries;
+        const e = entries.find(
+          (e) =>
+            e.id === t.offerId && e.player === this.me() && e.kind === "offer",
+        );
+        return (
+          !!e &&
+          e.device === collectionDevice() &&
+          e.target === t.parties[0] &&
+          same(e.cards, t.offers[this.me()]) &&
+          same(e.receive, t.offers[t.parties[0]]) &&
+          livePosts(entries).some(
+            (p) => p.id === e.parent && p.mode !== "showcase",
+          )
+        );
+      },
+      show: (terms, error) => {
+        check();
+        if (
+          terms &&
+          this.state.session &&
+          this.state.session.id !== terms.id &&
+          !["completed", "cancelled"].includes(this.state.session.status)
+        )
+          return;
+        this.patch({
+          session: terms
+            ? { ...terms, versions: {}, ready: [], status: "settling" }
+            : null,
+          error: error ?? "",
+        });
+      },
+    });
+    return this.exchange;
+  }
+  reviewOffer(e: SocialEntry) {
+    this.expire();
+    if (
+      this.state.session &&
+      !["completed", "cancelled"].includes(this.state.session.status)
+    )
+      throw Error("Finish or close the current trade first.");
+    if (
+      !e.device ||
+      !e.receive?.length ||
+      !e.cards?.every((c) => "setId" in c && "obtainedAt" in c)
+    )
+      throw Error(
+        "Ask this collector to submit a fresh offer with the updated game.",
+      );
+    if (
+      e.target !== this.me() ||
+      e.player === this.me() ||
+      !Object.values(multiplayer.snapshot().peers).some(
+        (p) => p.profile.playerId === e.player,
+      )
+    )
+      throw Error("The offering collector must be online.");
+    const mine = e.receive.map((c) =>
+      this.game!.save!.owned.find(
+        (o) =>
+          o.instanceId === c.instanceId &&
+          o.cardId === c.cardId &&
+          o.finish === c.finish &&
+          o.ham === c.ham,
+      ),
+    );
+    if (mine.some((c) => !c))
+      throw Error("The exact requested copies are unavailable on this device.");
+    const t: ExchangeTerms = {
+      id: generateId().slice(0, 20),
+      protocol: 2,
+      parties: [this.me(), e.player],
+      devices: { [this.me()]: collectionDevice(), [e.player]: e.device },
+      offers: {
+        [this.me()]: mine as OwnedCard[],
+        [e.player]: e.cards as OwnedCard[],
+      },
+      expiresAt: Date.now() + 30000,
+      offerId: e.id,
+    };
+    this.patch({
+      session: { ...t, versions: {}, ready: [], status: "draft" },
+      error: "",
+    });
+  }
+  expire() {
+    this.exchange?.expire();
+    const t = this.state.session;
+    if (!t) return;
+    const at =
+      this.game?.save?.trades?.find((j) => j.id === t.id)?.at ??
+      this.visibleSince;
+    if (Date.now() >= (t.expiresAt ?? at + 30000)) {
+      this.dismissed.add(t.id);
+      this.patch({
+        session: null,
+        error: "Trade timed out. You can start another trade.",
+      });
+    }
+  }
+  private legacySession(j: TradeJournal, session: LiveTrade, error = "") {
+    if (Date.now() - j.at >= 30000 || this.dismissed.has(j.id)) {
+      this.dismissed.add(j.id);
+      if (this.state.session?.id === j.id) this.patch({ session: null });
+      return;
+    }
+    if (
+      this.state.session &&
+      this.state.session.id !== j.id &&
+      !["completed", "cancelled"].includes(this.state.session.status)
+    )
+      return;
+    this.patch({ session, error });
+  }
+
   private guard() {
     const epoch = this.epoch,
       player = this.game?.profile?.playerId;
@@ -48,6 +214,8 @@ class Trading {
   };
   snapshot = () => this.state;
   private patch(p: Partial<TradeState>) {
+    if (p.session && p.session.id !== this.state.session?.id)
+      this.visibleSince = Date.now();
     this.state = { ...this.state, ...p };
     this.listeners.forEach((fn) => fn());
   }
@@ -82,6 +250,7 @@ class Trading {
       this.patch({ error: "Trade update queued for recovery. Please wait." });
   }
   invite(player: string, ownIds?: string[], remoteIds?: string[]) {
+    this.expire();
     this.requested = (remoteIds ?? []).slice(0, 3);
     if (multiplayer.snapshot().status !== "online")
       throw Error("Waiting for a connection");
@@ -138,7 +307,13 @@ class Trading {
   }
   async accept(event: string, data: unknown, from: string) {
     const check = this.guard();
-    if (event !== "trade" || !this.game?.profile) return;
+    if (!this.game?.profile) return;
+    if (event === "exchange") {
+      const peer = multiplayer.snapshot().peers[from];
+      if (peer) await this.fast().receive(data, peer.profile.playerId);
+      return;
+    }
+    if (event !== "trade") return;
     const d = data as any,
       me = this.me(),
       peer = multiplayer.snapshot().peers[from];
@@ -155,6 +330,7 @@ class Trading {
     )
       return;
     const other = peer.profile.playerId;
+    if (this.dismissed.has(d.id)) return;
     if (
       this.game.save?.trades?.some((j) => j.id === d.id && j.status !== "ready")
     )
@@ -308,7 +484,7 @@ class Trading {
         const saved: Save = await this.game.update((s) => ({
           ...s,
           trades: [
-            ...(s.trades ?? []).slice(-49),
+            ...retainTradeJournals(s.trades ?? []),
             {
               ...t!,
               digest: tradeDigest(t!),
@@ -343,6 +519,22 @@ class Trading {
     return record;
   }
   async confirm() {
+    if (this.state.session?.protocol === 2) {
+      const t = this.state.session as LiveTrade & ExchangeTerms;
+      if (Date.now() >= t.expiresAt) {
+        this.expire();
+        return;
+      }
+      this.patch({ busy: true, error: "" });
+      try {
+        await this.fast().start({ ...t, expiresAt: Date.now() + 30000 });
+      } catch (e) {
+        this.patch({ error: (e as Error).message });
+      } finally {
+        this.patch({ busy: false });
+      }
+      return;
+    }
     const check = this.guard(),
       epoch = this.epoch;
     const t = this.state.session;
@@ -420,10 +612,15 @@ class Trading {
       const records = this.records();
       const own = await records.read(t.id, this.me());
       check();
-      if (own && own.data.status !== "cancelled")
-        throw Error(
-          "Confirmation is already on the server. Retry recovery to finish safely.",
-        );
+      if (own && own.data.status !== "cancelled") {
+        this.dismissed.add(t.id);
+        this.patch({
+          session: null,
+          error:
+            "This sent trade will recover in the background. Other cards can be traded now.",
+        });
+        return;
+      }
       const other = await records.read(
         t.id,
         t.parties.find((p) => p !== this.me())!,
@@ -433,7 +630,13 @@ class Trading {
         throw Error(
           "The other collector has completed this trade. Retry recovery to finish safely.",
         );
-      await this.store(t, "cancelled");
+      try {
+        await this.store(t, "cancelled");
+      } catch (e) {
+        if (!(e instanceof TradeRecordError && e.definitive)) throw e;
+        // Both reads proved no own confirmation and no completed peer receipt.
+        // Rejected storage cannot publish a swap; keep a local terminal tombstone.
+      }
       check();
       const saved = await this.game!.update((s) =>
         cancelPreparedTrade(s, t.id, t),
@@ -448,10 +651,18 @@ class Trading {
     } catch (e) {
       if (epoch === this.epoch) this.patch({ error: (e as Error).message });
     } finally {
-      if (epoch === this.epoch) this.patch({ busy: false });
+      if (epoch === this.epoch) {
+        this.dismissed.add(t.id);
+        this.patch({ busy: false, session: null });
+      }
     }
   }
   async decline() {
+    if (this.state.session?.protocol === 2) {
+      await this.fast().cancel();
+      this.patch({ session: null });
+      return;
+    }
     const check = this.guard(),
       epoch = this.epoch;
     const t = this.state.session;
@@ -469,7 +680,7 @@ class Trading {
       const saved = await this.game!.update((s) => ({
         ...s,
         trades: [
-          ...(s.trades ?? []).filter((j) => j.id !== t.id).slice(-49),
+          ...retainTradeJournals((s.trades ?? []).filter((j) => j.id !== t.id)),
           { ...t, digest: tradeDigest(t), status: "cancelled", at: Date.now() },
         ],
       }));
@@ -481,10 +692,15 @@ class Trading {
       if (epoch !== this.epoch) return;
       this.patch({ error: (e as Error).message });
     } finally {
-      if (epoch === this.epoch) this.patch({ busy: false });
+      if (epoch === this.epoch) {
+        this.dismissed.add(t.id);
+        this.patch({ busy: false, session: null });
+      }
     }
   }
   async recover() {
+    this.expire();
+    if (this.game?.profile && this.game.save) await this.fast().tick();
     if (
       this.recovering ||
       this.state.busy ||
@@ -499,7 +715,7 @@ class Trading {
     try {
       const me = this.me();
       for (const j of (this.game.save.trades ?? []).filter(
-        (j) => j.status === "ready",
+        (j) => j.status === "ready" && j.protocol !== 2,
       )) {
         const records = this.records();
         const own = await records.read(j.id, me);
@@ -517,11 +733,11 @@ class Trading {
           ready: current?.ready ?? [],
         };
         if (own && own.data.digest !== j.digest) {
-          this.patch({
-            session: { ...base, status: "unsubmitted" },
-            error:
-              "The server confirmation differs from this saved trade. Your cards remain reserved.",
-          });
+          this.legacySession(
+            j,
+            { ...base, status: "unsubmitted" },
+            "The server confirmation differs. These exact cards remain reserved.",
+          );
           continue;
         }
         if (
@@ -533,41 +749,49 @@ class Trading {
           );
           check();
           this.game = { ...this.game, save: saved };
-          this.patch({
-            session: { ...base, ready: [], status: "cancelled" },
-            error: "",
-          });
+          this.legacySession(j, { ...base, ready: [], status: "cancelled" });
           continue;
         }
         if (other && other.data.digest !== j.digest) {
-          this.patch({
-            session: { ...base, status: "unsubmitted" },
-            error:
-              "The saved offers differ. Review this trade before retrying.",
-          });
+          this.legacySession(
+            j,
+            { ...base, status: "unsubmitted" },
+            "The saved offers differ. These exact cards remain reserved.",
+          );
           continue;
         }
         if (!own && other?.data.status !== "completed") {
-          this.patch({
-            session: {
+          if (Date.now() - j.at >= 30000 || this.dismissed.has(j.id)) {
+            try {
+              await this.store(j, "cancelled");
+            } catch (e) {
+              if (!(e instanceof TradeRecordError && e.definitive)) throw e;
+            }
+            const saved: Save = await this.game.update((s) =>
+              cancelPreparedTrade(s, j.id, j),
+            );
+            check();
+            this.game = { ...this.game, save: saved };
+            this.legacySession(j, { ...base, ready: [], status: "cancelled" });
+            continue;
+          }
+          this.legacySession(
+            j,
+            {
               ...base,
               ready: base.ready.filter((p) => p !== me),
               status: "unsubmitted",
             },
-            error:
-              "This trade was saved on this device but its confirmation was not delivered. Retry or cancel this unsent trade.",
-          });
+            "Saved locally; retry or cancel this unsent trade.",
+          );
           continue;
         }
-        this.patch({
-          session: {
-            ...base,
-            ready: [...new Set([...base.ready, me])],
-            status: "settling",
-          },
-          error: "",
+        this.legacySession(j, {
+          ...base,
+          ready: [...new Set([...base.ready, me])],
+          status: "settling",
         });
-        this.packet("ready");
+        if (this.state.session?.id === j.id) this.packet("ready");
         if (
           other &&
           ["ready", "completed"].includes(other.data.status) &&
@@ -579,13 +803,14 @@ class Trading {
           );
           check();
           this.game = { ...this.game, save: saved };
-          this.patch({
-            session: { ...base, status: "completed", ready: j.parties },
-            error: "",
+          this.legacySession(j, {
+            ...base,
+            status: "completed",
+            ready: j.parties,
           });
           await this.store(j, "completed");
           check();
-          this.packet("receipt");
+          if (this.state.session?.id === j.id) this.packet("receipt");
         }
       }
     } catch (e) {
@@ -600,6 +825,8 @@ class Trading {
     }
   }
   reset() {
+    this.exchange = null;
+    this.dismissed.clear();
     this.requested = [];
     this.requestedFor = "";
     this.prefilled.clear();
@@ -618,13 +845,15 @@ export function useTrading(game: Game) {
     const stop = multiplayer.onEvent((e, d, f) => {
       void trading.accept(e, d, f).catch(() => {});
     });
+    const expiry = setInterval(() => trading.expire(), 500);
     const timer = setInterval(() => {
-      void trading.recover();
+      void trading.recover().catch(() => {});
     }, 5000);
     void trading.recover();
     return () => {
       stop();
       clearInterval(timer);
+      clearInterval(expiry);
       trading.reset();
     };
   }, [game.profile?.playerId, !!game.save]);

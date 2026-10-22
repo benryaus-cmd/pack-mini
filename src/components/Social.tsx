@@ -147,11 +147,7 @@ export function Social({
       .filter((o) => o.player === me)
       .at(-1);
     if (!prior) throw Error("Add your cards with a counteroffer first.");
-    trading.invite(
-      e.player,
-      prior.cards?.map((c) => c.instanceId) ?? [],
-      e.cards?.map((c) => c.instanceId) ?? [],
-    );
+    trading.reviewOffer(e);
     setTab("exchange");
   }
   function offerRow(e: SocialEntry) {
@@ -199,12 +195,7 @@ export function Social({
           throw Error(
             "Finish this pack or confirmed trade before listing these copies.",
           );
-        return {
-          instanceId: c.instanceId,
-          cardId: c.cardId,
-          finish: c.finish,
-          ham: c.ham,
-        };
+        return { ...c };
       });
       if (picker?.post) social.offer(picker.post, cards, picker.target);
       else social.post(cards, mode);
@@ -761,8 +752,9 @@ export function Social({
                 {choice.length === 1
                   ? "Single-card trade"
                   : `Trade bundle · all ${choice.length} cards offered together`}
-                . Collectors make an offer, then both confirm the exact cards
-                before any exchange.
+                . Submitting an offer authorizes these exact cards. The other
+                collector accepts; both game clients verify and complete the
+                swap before any exchange.
               </p>
             )}
             <div className="ms-post-actions">

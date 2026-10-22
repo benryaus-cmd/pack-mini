@@ -314,9 +314,7 @@ try {
   await pages[0]
     .getByRole("button", { name: "POST TRADE · 1/3", exact: true })
     .click();
-  await pages[0]
-    .getByText(/Single-card trade.*Collectors make an offer/)
-    .waitFor();
+  await pages[0].getByText(/Single-card trade.*Submitting an offer/).waitFor();
   await pages[0]
     .getByRole("button", { name: "CONFIRM SINGLE TRADE", exact: true })
     .click();
@@ -381,6 +379,7 @@ try {
         await import("/src/styles/app.css");
         await import("/src/styles/mini.css");
         await import("/src/styles/mini-update.css");
+        window.tradeHarnessRoot?.unmount();
         const profile = {
           playerId: "test_" + index,
           username: "test" + index,
@@ -414,7 +413,9 @@ try {
           showcase: [],
         });
         multiplayer.connect("http://127.0.0.1:8792", "mini-lobby");
-        window.ms = { multiplayer, trading, profile };
+        const { social } = await import("/src/services/social.ts");
+        social.bind(profile);
+        window.ms = { multiplayer, trading, profile, social };
         document.body.innerHTML = '<div id="trade-root"></div>';
         function Harness() {
           const [save, setSave] = React.useState(saved);
@@ -435,9 +436,10 @@ try {
           }, []);
           return React.createElement(Trades, { game });
         }
-        createRoot(document.getElementById("trade-root")).render(
-          React.createElement(Harness),
+        window.tradeHarnessRoot = createRoot(
+          document.getElementById("trade-root"),
         );
+        window.tradeHarnessRoot.render(React.createElement(Harness));
       },
       { index, seed },
     );
@@ -568,8 +570,116 @@ try {
     2,
     "both per-owner completion receipts persisted",
   );
+  // New consent flow: submitting the social offer authorizes the peer client.
+  // Only the listing owner taps CONFIRM; the offering client has no second tap.
+  for (let i = 0; i < 2; i++) await mountTrade(pages[i], i, true);
+  for (const p of pages)
+    await p.waitForFunction(() =>
+      Object.values(window.ms.multiplayer.snapshot().peers).some(
+        (p) => p.profile.playerId !== window.ms.profile.playerId,
+      ),
+    );
+  for (const p of pages) {
+    await p.evaluate(async () => {
+      await window.ms.game.update((s) => ({
+        ...s,
+        owned: [0, 1, 2].map((i) => ({
+          ...s.owned[0],
+          instanceId: crypto.randomUUID(),
+          openingId: crypto.randomUUID(),
+        })),
+      }));
+    });
+    await p.waitForFunction(() => window.ms.game.save.owned.length === 3);
+  }
+  const postId = await pages[0].evaluate(
+    () => window.ms.social.post(window.ms.game.save.owned, "trade").id,
+  );
+  await pages[1].waitForFunction(
+    (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
+    postId,
+  );
+  const offerId = await pages[1].evaluate(
+    (id) =>
+      window.ms.social.offer(
+        window.ms.social.snapshot().entries.find((e) => e.id === id),
+        window.ms.game.save.owned,
+      ).id,
+    postId,
+  );
+  await pages[0].waitForFunction(
+    (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
+    offerId,
+  );
+  await pages[0].evaluate(
+    (id) =>
+      window.ms.trading.reviewOffer(
+        window.ms.social.snapshot().entries.find((e) => e.id === id),
+      ),
+    offerId,
+  );
+  const exchangeId = await pages[0].evaluate(
+    () => window.ms.trading.snapshot().session.id,
+  );
+  await pages[0]
+    .getByRole("button", { name: "CONFIRM THESE CARDS", exact: true })
+    .click();
+  for (const p of pages)
+    await p
+      .waitForFunction(
+        (id) =>
+          window.ms.game.save.trades?.some(
+            (j) => j.id === id && j.status === "completed" && j.acknowledged,
+          ),
+        exchangeId,
+        { timeout: 12000 },
+      )
+      .catch(async (e) => {
+        console.log(
+          "EXCHANGE DEBUG",
+          JSON.stringify(
+            await Promise.all(
+              pages.map((p) =>
+                p.evaluate(() => ({
+                  state: window.ms.trading.snapshot(),
+                  save: window.ms.game.save,
+                  entries: window.ms.social
+                    .snapshot()
+                    .entries.filter((e) => e.kind === "offer")
+                    .slice(-2),
+                  peers: window.ms.multiplayer.snapshot().peers,
+                })),
+              ),
+            ),
+          ),
+        );
+        console.log(
+          "COORDINATORS",
+          JSON.stringify(
+            [...records.entries()].filter(
+              ([key]) => key.startsWith("mx_") || key.startsWith("mr_"),
+            ),
+          ),
+        );
+        throw e;
+      });
+  for (let i = 0; i < 2; i++) {
+    const own = await pages[i].evaluate(() => window.ms.game.save.owned);
+    assert.equal(own.length, 3);
+    assert.equal(own[0].ham, i ? 10 : 7);
+    assert.equal(
+      await pages[i].evaluate(() => window.ms.trading.snapshot().session),
+      null,
+    );
+    await pages[i].reload();
+    await mountTrade(pages[i], i, false);
+    assert.equal(
+      await pages[i].evaluate(() => window.ms.game.save.owned.length),
+      3,
+    );
+  }
   console.log(
-    "PASS: two real browser contexts relay replaceable votes, trade posts and threaded counteroffers; persistent reload restores both players; HAM10/HAM7 mutual trade settles after first-confirm reload with no duplicates.",
+    "PASS: two real browser contexts relay replaceable votes, trade posts and threaded counteroffers; persistent reload restores both players; HAM10/HAM7 legacy trade settles across reload; new device-bound social offer completes with only the accepting user confirmation, no duplicate cards, and reload persistence.",
   );
 } finally {
   await browser.close();

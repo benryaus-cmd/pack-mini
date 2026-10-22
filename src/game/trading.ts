@@ -1,6 +1,10 @@
 import type { OwnedCard, Save } from "./types.ts";
 export interface TradeTerms {
   id: string;
+  protocol?: 2;
+  devices?: Record<string, string>;
+  expiresAt?: number;
+  offerId?: string;
   parties: [string, string];
   offers: Record<string, OwnedCard[]>;
 }
@@ -8,10 +12,32 @@ export interface TradeJournal extends TradeTerms {
   digest: string;
   status: "ready" | "completed" | "cancelled";
   at: number;
+  acknowledged?: boolean;
+  commitAttempted?: boolean;
+}
+/** Pending swaps and unsent application receipts outlive the bounded history. */
+export function retainTradeJournals(journals: TradeJournal[]) {
+  const pending = (j: TradeJournal) =>
+    j.status === "ready" ||
+    (j.protocol === 2 && j.status === "completed" && !j.acknowledged);
+  return [
+    ...journals.filter(pending),
+    ...journals.filter((j) => !pending(j)).slice(-49),
+  ];
 }
 export function tradeDigest(t: TradeTerms): string {
   const text = JSON.stringify([
     t.id,
+    ...(t.protocol === 2
+      ? [
+          [
+            2,
+            [...t.parties].sort().map((p) => [p, t.devices?.[p]]),
+            t.expiresAt,
+            t.offerId,
+          ],
+        ]
+      : []),
     ...[...t.parties]
       .sort()
       .map((p) => [
@@ -53,8 +79,7 @@ export function prepareTrade(s: Save, terms: TradeTerms, player: string): Save {
     if (prior.digest !== digest) throw Error("Trade terms changed");
     return s;
   }
-  if ((s.trades ?? []).some((t) => t.status === "ready"))
-    throw Error("Finish your current trade first");
+  const reserved = lockedTradeIds(s);
   const mine = terms.offers[player] ?? [];
   const other = terms.offers[terms.parties.find((p) => p !== player)!] ?? [];
   if (!mine.length || !other.length || mine.length > 3 || other.length > 3)
@@ -68,6 +93,7 @@ export function prepareTrade(s: Save, terms: TradeTerms, player: string): Save {
   for (const c of mine) {
     const own = s.owned.find((o) => o.instanceId === c.instanceId);
     if (
+      reserved.has(c.instanceId) ||
       !own ||
       JSON.stringify(own) !== JSON.stringify(c) ||
       pending.has(c.instanceId)
@@ -79,7 +105,7 @@ export function prepareTrade(s: Save, terms: TradeTerms, player: string): Save {
   return {
     ...s,
     trades: [
-      ...(s.trades ?? []).slice(-49),
+      ...retainTradeJournals(s.trades ?? []),
       { ...structuredClone(terms), digest, status: "ready", at: Date.now() },
     ],
   };
@@ -93,7 +119,7 @@ export function cancelPreparedTrade(
     return {
       ...s,
       trades: [
-        ...(s.trades ?? []).slice(-49),
+        ...retainTradeJournals(s.trades ?? []),
         {
           ...terms,
           digest: tradeDigest(terms),

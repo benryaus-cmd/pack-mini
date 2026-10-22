@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { Game } from "../services/useGame";
 import { trading } from "../services/trading";
 import { multiplayer } from "../services/multiplayer";
@@ -17,6 +17,12 @@ export function Trades({ game }: { game: Game }) {
     multiplayer.snapshot,
   );
   const [notice, setNotice] = useState("");
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!t?.expiresAt) return;
+    const timer = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(timer);
+  }, [t?.id, t?.expiresAt]);
   const me = game.profile!.playerId,
     save = game.save!;
   const peers = Object.values(network.peers).filter(
@@ -46,9 +52,8 @@ export function Trades({ game }: { game: Game }) {
   return (
     <div className="trades-panel">
       <p className="fine-print">
-        Live card swaps · both collectors confirm the same offers.
-        Client-trusted trades settle on each device; keep your collection on
-        this device.
+        Submit an offer to authorize those exact cards. The accepting collector
+        confirms once; both game clients check and complete the swap.
       </p>
       {(!t || ["cancelled", "completed"].includes(t.status)) && (
         <>
@@ -59,6 +64,12 @@ export function Trades({ game }: { game: Game }) {
           )}
           {t?.status === "cancelled" && (
             <p className="notice">Trade declined. Your cards are yours.</p>
+          )}
+          {save.trades?.some((j) => j.status === "ready") && (
+            <p className="notice">
+              A previous swap is recovering in the background. Its exact cards
+              stay reserved; your other cards are available.
+            </p>
           )}
           <h3>Online collectors</h3>
           {peers.map((c) => (
@@ -86,6 +97,12 @@ export function Trades({ game }: { game: Game }) {
             {peers.find((c) => c.profile.playerId === other)?.profile
               .nickName ?? "collector"}
           </h3>
+          {t.expiresAt && (
+            <p className="fine-print">
+              {Math.max(0, Math.ceil((t.expiresAt - now) / 1000))}s remaining ·
+              this trade closes automatically
+            </p>
+          )}
           <div className="trade-offers">
             {[me, other!].map((p) => (
               <section key={p}>
@@ -112,7 +129,7 @@ export function Trades({ game }: { game: Game }) {
               </section>
             ))}
           </div>
-          {t.status === "draft" && !t.ready.length && (
+          {t.status === "draft" && !t.ready.length && t.protocol !== 2 && (
             <>
               <label className="search">
                 <input
@@ -198,9 +215,11 @@ export function Trades({ game }: { game: Game }) {
           )}
           {t.status === "settling" && (
             <p className="success-notice" role="status">
-              {t.ready.includes(me)
-                ? "Your confirmation was sent. Waiting for the other collector; recovery continues automatically."
-                : "Saving your confirmation… your cards have not been exchanged."}
+              {t.protocol === 2
+                ? "Checking the offering device and exchanging the exact cards automatically…"
+                : t.ready.includes(me)
+                  ? "Your confirmation was sent. Waiting for the other collector; recovery continues automatically."
+                  : "Saving your confirmation… your cards have not been exchanged."}
             </p>
           )}
           {t.status === "unsubmitted" && (
@@ -209,15 +228,19 @@ export function Trades({ game }: { game: Game }) {
               to release these cards and trade with someone else.
             </p>
           )}
-          {(!t.ready.includes(me) || t.status === "unsubmitted") && (
+          {(t.protocol === 2 ||
+            !t.ready.includes(me) ||
+            t.status === "unsubmitted") && (
             <button
               className="secondary full"
               disabled={busy}
               onClick={() => act(() => trading.decline())}
             >
-              {t.status === "unsubmitted"
-                ? "CANCEL UNSENT TRADE"
-                : "DECLINE TRADE"}
+              {t.protocol === 2
+                ? "CANCEL / CLOSE TRADE"
+                : t.status === "unsubmitted"
+                  ? "CANCEL UNSENT TRADE"
+                  : "CANCEL / CLOSE TRADE"}
             </button>
           )}
           {t.status === "settling" && (

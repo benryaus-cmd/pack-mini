@@ -182,7 +182,7 @@ export class Multiplayer {
       throw new ApiError(
         response.status,
         messages[response.status] ??
-          `Server request failed (${response.status})`,
+          `Server request failed (${response.status}): ${path}`,
         retry,
       );
     }
