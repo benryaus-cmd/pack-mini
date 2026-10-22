@@ -1,47 +1,149 @@
 import {
+  Component,
   lazy,
+  type ReactNode,
   Suspense,
   useCallback,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
-} from 'react';
-import { aippyTweaks } from '@aippy/runtime/tweaks';
-import tweaksConfig from '@/config/tweaksConfig.json';
-import ProjectFileViewer from '@/components/ProjectFileViewer';
-import {
-  GameLoadBoundary,
-  GameFailurePanel,
-  type StartupFailure,
-} from '@/components/GameLoadBoundary';
-import { copyText } from '@/gameHost/clipboard';
+} from "react";
+import { aippyTweaks } from "@aippy/runtime/tweaks";
+import tweaksConfig from "@/config/tweaksConfig.json";
+import ProjectFileViewer from "@/components/ProjectFileViewer";
+import { copyText } from "@/gameHost/clipboard";
 
 const tweaks = aippyTweaks(tweaksConfig);
 
-type ProjectFilesCallbacks = { onBack: () => void; onInteraction: () => void; onCopySuccess: () => void; onCopyFailure: () => void };
+type ProjectFilesCallbacks = {
+  onBack: () => void;
+  onInteraction: () => void;
+  onCopySuccess: () => void;
+  onCopyFailure: () => void;
+};
 
-const LazyImportedGame = lazy(() => import('@/games/importedGame/ImportedGame'));
+const LazyImportedGame = lazy(
+  () => import("@/games/importedGame/ImportedGame"),
+);
 
 function describeFailure(error: unknown, fallback: string): StartupFailure {
   if (error instanceof Error) {
     return { message: error.message || fallback, stack: error.stack };
   }
-  if (error && typeof error === 'object') {
+  if (error && typeof error === "object") {
     const value = error as { message?: unknown; stack?: unknown };
     return {
-      message: typeof value.message === 'string' ? value.message : fallback,
-      stack: typeof value.stack === 'string' ? value.stack : undefined,
+      message: typeof value.message === "string" ? value.message : fallback,
+      stack: typeof value.stack === "string" ? value.stack : undefined,
     };
   }
-  return { message: typeof error === 'string' ? error : fallback };
+  return { message: typeof error === "string" ? error : fallback };
+}
+
+type StartupFailure = { message: string; stack?: string };
+
+function PublicGameFailure({
+  failure,
+  onCopy,
+  onRetry,
+}: {
+  failure: StartupFailure;
+  onCopy: () => unknown;
+  onRetry: () => void;
+}) {
+  return (
+    <section
+      className="game-startup-state"
+      role="alert"
+      style={{
+        height: "100%",
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+        padding: "clamp(16px,4vw,28px)",
+        overflow: "auto",
+        color: "var(--host-text,#edf0e9)",
+        background: "var(--host-bg,#080d16)",
+      }}
+    >
+      <small style={{ color: "var(--host-accent,#e4ca8b)", letterSpacing: 2 }}>
+        PACK MINI STARTUP
+      </small>
+      <h1 style={{ fontSize: "clamp(22px,5vw,32px)", margin: 0 }}>
+        The game could not start
+      </h1>
+      <p style={{ margin: 0 }}>{failure.message}</p>
+      <pre
+        style={{
+          flex: 1,
+          minHeight: 90,
+          overflow: "auto",
+          whiteSpace: "pre-wrap",
+          overflowWrap: "anywhere",
+          fontSize: 12,
+          padding: 12,
+          border: "1px solid #ffffff26",
+        }}
+      >
+        {[failure.message, failure.stack].filter(Boolean).join("\n\n")}
+      </pre>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button
+          style={{ flex: 1, minHeight: 44 }}
+          onClick={() => void onCopy()}
+        >
+          COPY ERROR
+        </button>
+        <button style={{ flex: 1, minHeight: 44 }} onClick={onRetry}>
+          TRY AGAIN
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** The public boundary intentionally accepts only failure/retry callbacks. */
+class MiniGameLoadBoundary extends Component<
+  {
+    children: ReactNode;
+    onFailure: (failure: StartupFailure) => void;
+    onRetry: () => void;
+  },
+  { failure: StartupFailure | null }
+> {
+  state: { failure: StartupFailure | null } = { failure: null };
+  static getDerivedStateFromError(error: unknown) {
+    return { failure: describeFailure(error, "The game could not start.") };
+  }
+  componentDidCatch(error: unknown) {
+    this.props.onFailure(describeFailure(error, "The game could not start."));
+  }
+  render() {
+    return this.state.failure ? (
+      <PublicGameFailure
+        failure={this.state.failure}
+        onCopy={() =>
+          copyText(
+            [this.state.failure!.message, this.state.failure!.stack]
+              .filter(Boolean)
+              .join("\n\n"),
+          )
+        }
+        onRetry={this.props.onRetry}
+      />
+    ) : (
+      this.props.children
+    );
+  }
 }
 
 function App() {
   const [projectFilesOpen, setProjectFilesOpen] = useState(false);
   const [tempSaveUnlock, setTempSaveUnlock] = useState(false);
-  const [tempSaveCode, setTempSaveCode] = useState('');
-  const [tempSaveError, setTempSaveError] = useState('');
+  const [tempSaveCode, setTempSaveCode] = useState("");
+  const [tempSaveError, setTempSaveError] = useState("");
   const [startupRequested, setStartupRequested] = useState(false);
   const [startupError, setStartupError] = useState<StartupFailure | null>(null);
   const [gameAttempt, setGameAttempt] = useState(0);
@@ -56,11 +158,11 @@ function App() {
   tweaks.hostTitle.useState();
   tweaks.showStatus.useState();
   const themeStyle = {
-    '--host-bg': backgroundColor,
-    '--host-panel': panelColor,
-    '--host-text': primaryText,
-    '--host-muted': mutedText,
-    '--host-accent': accentColor,
+    "--host-bg": backgroundColor,
+    "--host-panel": panelColor,
+    "--host-text": primaryText,
+    "--host-muted": mutedText,
+    "--host-accent": accentColor,
   } as CSSProperties;
   const beginStartupMonitoring = useCallback(() => {
     startupMonitoring.current = true;
@@ -84,23 +186,32 @@ function App() {
   useEffect(() => {
     const onError = (event: ErrorEvent) => {
       if (!startupMonitoring.current) return;
-      const error = event.error ?? new Error(
-        `${event.message || 'The game could not start.'} ${event.filename}:${event.lineno}:${event.colno}`,
+      const error =
+        event.error ??
+        new Error(
+          `${event.message || "The game could not start."} ${event.filename}:${event.lineno}:${event.colno}`,
+        );
+      recordFailure(
+        describeFailure(error, event.message || "The game could not start."),
       );
-      recordFailure(describeFailure(error, event.message || 'The game could not start.'));
     };
     const onRejection = (event: PromiseRejectionEvent) => {
       if (startupMonitoring.current) {
-        recordFailure(describeFailure(event.reason, 'An asynchronous game startup task failed.'));
+        recordFailure(
+          describeFailure(
+            event.reason,
+            "An asynchronous game startup task failed.",
+          ),
+        );
       }
     };
-    window.addEventListener('error', onError);
-    window.addEventListener('unhandledrejection', onRejection);
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
     beginStartupMonitoring();
     setStartupRequested(true);
     return () => {
-      window.removeEventListener('error', onError);
-      window.removeEventListener('unhandledrejection', onRejection);
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
       if (startupMonitorTimer.current !== undefined) {
         window.clearTimeout(startupMonitorTimer.current);
       }
@@ -111,16 +222,44 @@ function App() {
   useEffect(() => {
     if (!gameMounted) return undefined;
     const timer = window.setTimeout(() => {
-      const selectors = ['#root', '.packverse-app', '#packverse-game-root', '.desktop-scene', '.game-root'];
+      const selectors = [
+        "#root",
+        ".packverse-app",
+        "#packverse-game-root",
+        ".desktop-scene",
+        ".game-root",
+      ];
       const samples = selectors.map((selector) => {
         const element = document.querySelector<HTMLElement>(selector);
-        if (!element) return { selector, width: 0, height: 0, display: 'missing', visibility: 'hidden', opacity: '0' };
+        if (!element)
+          return {
+            selector,
+            width: 0,
+            height: 0,
+            display: "missing",
+            visibility: "hidden",
+            opacity: "0",
+          };
         const style = window.getComputedStyle(element);
         const rect = element.getBoundingClientRect();
-        return { selector, width: Math.round(rect.width), height: Math.round(rect.height), display: style.display, visibility: style.visibility, opacity: style.opacity };
+        return {
+          selector,
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          display: style.display,
+          visibility: style.visibility,
+          opacity: style.opacity,
+        };
       });
-      console.info('[Aippy] Packverse layout check', samples);
-      const broken = samples.find((sample) => sample.width === 0 || sample.height === 0 || sample.display === 'none' || sample.visibility === 'hidden' || sample.opacity === '0');
+      console.info("[Aippy] Packverse layout check", samples);
+      const broken = samples.find(
+        (sample) =>
+          sample.width === 0 ||
+          sample.height === 0 ||
+          sample.display === "none" ||
+          sample.visibility === "hidden" ||
+          sample.opacity === "0",
+      );
       if (broken) {
         recordFailure({
           message: `Packverse layout is unavailable at ${broken.selector} (${broken.width}×${broken.height}, ${broken.display}, ${broken.visibility}, opacity ${broken.opacity}).`,
@@ -131,7 +270,11 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [gameMounted, recordFailure]);
 
-  const openProjectFiles = () => { setTempSaveCode(''); setTempSaveError(''); setTempSaveUnlock(true); };
+  const openProjectFiles = () => {
+    setTempSaveCode("");
+    setTempSaveError("");
+    setTempSaveUnlock(true);
+  };
   const retryGame = () => {
     beginStartupMonitoring();
     setStartupError(null);
@@ -139,9 +282,9 @@ function App() {
     setGameAttempt((attempt) => attempt + 1);
   };
   const copyFailure = async (failure: StartupFailure) =>
-    copyText([failure.message, failure.stack].filter(Boolean).join('\n\n'));
+    copyText([failure.message, failure.stack].filter(Boolean).join("\n\n"));
   const feedback = (pattern: number | number[]) => {
-    if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
+    if (typeof navigator.vibrate === "function") navigator.vibrate(pattern);
   };
   const projectFilesCallbacks: ProjectFilesCallbacks = {
     onBack: () => setProjectFilesOpen(false),
@@ -154,44 +297,118 @@ function App() {
     <div className="packverse-app" style={themeStyle}>
       <div className="packverse-game-mount">
         {startupError ? (
-          <GameFailurePanel
+          <PublicGameFailure
             failure={startupError}
             onCopy={() => copyFailure(startupError)}
-            onOpenProjectFiles={openProjectFiles}
             onRetry={retryGame}
           />
         ) : !startupRequested ? (
-          <div className="game-startup-state" role="status">Preparing PACK MINI…</div>
+          <div className="game-startup-state" role="status">
+            Preparing PACK MINI…
+          </div>
         ) : (
-          <GameLoadBoundary
+          <MiniGameLoadBoundary
             key={gameAttempt}
             onFailure={recordFailure}
-            onOpenProjectFiles={openProjectFiles}
             onRetry={retryGame}
           >
-            <Suspense fallback={<div className="game-startup-state" role="status">Loading PACK MINI…</div>}>
+            <Suspense
+              fallback={
+                <div className="game-startup-state" role="status">
+                  Loading PACK MINI…
+                </div>
+              }
+            >
               <LazyImportedGame
                 onOpenProjectFiles={openProjectFiles}
                 onGameReady={markGameMounted}
               />
             </Suspense>
-          </GameLoadBoundary>
+          </MiniGameLoadBoundary>
         )}
       </div>
       {tempSaveUnlock && (
-        <div className="host-project-overlay" style={{display:'grid',placeItems:'center',background:'#07101deb',zIndex:1000}}>
-          <form role="dialog" aria-modal="true" aria-label="temp save" style={{width:'min(320px,90%)',padding:24,border:'1px solid #d8b974',borderRadius:16,background:'#111b2c',color:'#f5e1b2'}} onSubmit={(event) => {
-            event.preventDefault();
-            if(tempSaveCode === '1234') { setTempSaveUnlock(false); setProjectFilesOpen(true); setTempSaveCode(''); }
-            else setTempSaveError('Incorrect code. Try again.');
-          }}>
-            <h2 style={{marginTop:0}}>temp save</h2>
+        <div
+          className="host-project-overlay"
+          style={{
+            display: "grid",
+            placeItems: "center",
+            background: "#07101deb",
+            zIndex: 1000,
+          }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-label="temp save"
+            style={{
+              width: "min(320px,90%)",
+              padding: 24,
+              border: "1px solid #d8b974",
+              borderRadius: 16,
+              background: "#111b2c",
+              color: "#f5e1b2",
+            }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (tempSaveCode === "1234") {
+                setTempSaveUnlock(false);
+                setProjectFilesOpen(true);
+                setTempSaveCode("");
+              } else setTempSaveError("Incorrect code. Try again.");
+            }}
+          >
+            <h2 style={{ marginTop: 0 }}>temp save</h2>
             <label htmlFor="temp-save-code">Enter code</label>
-            <input id="temp-save-code" aria-label="temp save code" type="password" inputMode="numeric" autoComplete="off" maxLength={4} autoFocus value={tempSaveCode} onChange={event=>setTempSaveCode(event.target.value)} style={{display:'block',width:'100%',boxSizing:'border-box',padding:12,margin:'10px 0',background:'#08111f',color:'white',border:'1px solid #728096',borderRadius:7}} />
+            <input
+              id="temp-save-code"
+              aria-label="temp save code"
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={4}
+              autoFocus
+              value={tempSaveCode}
+              onChange={(event) => setTempSaveCode(event.target.value)}
+              style={{
+                display: "block",
+                width: "100%",
+                boxSizing: "border-box",
+                padding: 12,
+                margin: "10px 0",
+                background: "#08111f",
+                color: "white",
+                border: "1px solid #728096",
+                borderRadius: 7,
+              }}
+            />
             {tempSaveError && <p role="alert">{tempSaveError}</p>}
-            <div style={{display:'flex',gap:12}}>
-              <button type="submit" style={{padding:12,background:'#edd18c',color:'#101827',border:0,borderRadius:7}}>Unlock</button>
-              <button type="button" onClick={()=>setTempSaveUnlock(false)} style={{padding:12,background:'transparent',color:'inherit',border:'1px solid #728096',borderRadius:7}}>Cancel</button>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                type="submit"
+                style={{
+                  padding: 12,
+                  background: "#edd18c",
+                  color: "#101827",
+                  border: 0,
+                  borderRadius: 7,
+                }}
+              >
+                Unlock
+              </button>
+              <button
+                type="button"
+                onClick={() => setTempSaveUnlock(false)}
+                style={{
+                  padding: 12,
+                  background: "transparent",
+                  color: "inherit",
+                  border: "1px solid #728096",
+                  borderRadius: 7,
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </div>

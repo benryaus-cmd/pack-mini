@@ -36,6 +36,12 @@ Submitting a social offer authorizes the exact offered copies for the exact requ
 
 Trades close automatically after30seconds. Expired, verified unsent legacy journals are cancelled even when writes definitively return404; Cancel/Close always frees the foreground. Sent or uncertain exchanges keep only their exact-card reservations in background while unrelated cards remain tradable. A committed exchange completes through recovery rather than returning exchanged cards. Pending journals and unapplied receipts survive bounded history pruning. Device IDs distinguish separate local collections under the same Aippy account. Pre1.1.2 offers need resubmitting to authorize the new automatic flow; existing confirmed trades use legacy recovery.
 
+## 1.1.3 remembered prices and public startup recovery
+
+Collection value, owned price sorting and big hits hydrate synchronously from the last known per-card/finish quotes. Market refreshes run in background and update owned prices as one complete batch; unavailable card/FX requests retain the previous usable quote. Totals are always derived from currently owned copies, including duplicate counts, so removed or sold cards stop contributing immediately. The first run builds the persistent cache; subsequent reloads reuse it. Single-card views also show cached prices while refreshing.
+
+The supplied outer host handles startup/render failures with Copy Error and Try Again only, labelled PACK MINI. Its public error panels have no project-file callbacks or actions. Settings → temp save →1234 remains the private file-viewer path. The reported opaque Script error is still surfaced; retry behavior remains available.
+
 ## Run and verify
 
 Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`, `npm run test:update`, `npm run test:arcade`, `npm run test:trade-failures`. `CHROMIUM_PATH` selects an installed browser.

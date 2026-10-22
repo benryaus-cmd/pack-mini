@@ -9,6 +9,106 @@ export interface CardPrice {
   variant: string;
   estimated?: boolean;
 }
+type OwnedPrice = { price: CardPrice; usd: number | null };
+type PriceMap = Record<string, OwnedPrice>;
+const PRICE_CACHE = "packmini-prices-v1";
+let rememberedPrices: PriceMap | undefined;
+function knownPrices(): PriceMap {
+  if (rememberedPrices) return rememberedPrices;
+  rememberedPrices = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(PRICE_CACHE) ?? "null");
+    if (
+      saved?.version === 1 &&
+      saved.quotes &&
+      typeof saved.quotes === "object"
+    )
+      for (const [key, value] of Object.entries(saved.quotes).slice(-2048)) {
+        const quote = value as OwnedPrice,
+          p = quote?.price;
+        if (
+          p &&
+          Number.isFinite(p.amount) &&
+          p.amount > 0 &&
+          ["USD", "EUR"].includes(p.currency) &&
+          ["TCGplayer", "Cardmarket"].includes(p.source) &&
+          typeof p.variant === "string" &&
+          (quote.usd === null || (Number.isFinite(quote.usd) && quote.usd > 0))
+        )
+          rememberedPrices[key] = quote;
+      }
+  } catch {
+    /* Cache/storage failures leave live market lookup available. */
+  }
+  return rememberedPrices;
+}
+function rememberPrices(prices: PriceMap) {
+  const merged = { ...knownPrices(), ...prices };
+  rememberedPrices = Object.fromEntries(Object.entries(merged).slice(-2048));
+  try {
+    localStorage.setItem(
+      PRICE_CACHE,
+      JSON.stringify({ version: 1, quotes: rememberedPrices }),
+    );
+  } catch {
+    /* In-memory quotes remain usable. */
+  }
+}
+function ownedPriceKey(save: Save) {
+  return [...new Set(save.owned.map((c) => c.cardId + ":" + c.finish))]
+    .sort()
+    .join("|");
+}
+function cachedOwnedPrices(save: Save): PriceMap {
+  const known = knownPrices();
+  return Object.fromEntries(
+    save.owned
+      .map((c) => c.cardId + ":" + c.finish)
+      .filter((k) => known[k])
+      .map((k) => [k, known[k]]),
+  );
+}
+async function refreshOwnedPrices(save: Save): Promise<PriceMap> {
+  const found = cachedOwnedPrices(save);
+  const entries = new Map(
+    save.owned.map((c) => [c.cardId + ":" + c.finish, c]),
+  );
+  await Promise.all(
+    [...entries].map(async ([key, c]) => {
+      const price = await resolveCardPrice(c.cardId, c.finish);
+      if (!price) return;
+      const usd = await priceUsd(price);
+      // Keep the last converted quote if FX is temporarily unavailable.
+      if (usd === null && found[key]?.usd != null) return;
+      found[key] = { price, usd };
+    }),
+  );
+  rememberPrices(found);
+  return found;
+}
+function useOwnedPricingState(save: Save) {
+  const key = ownedPriceKey(save);
+  const [state, setState] = useState(() => ({
+    key,
+    prices: cachedOwnedPrices(save),
+    loading: !!key,
+  }));
+  const shown =
+    state.key === key
+      ? state
+      : { key, prices: cachedOwnedPrices(save), loading: !!key };
+  useEffect(() => {
+    let alive = true;
+    setState({ key, prices: cachedOwnedPrices(save), loading: !!key });
+    void refreshOwnedPrices(save).then((prices) => {
+      if (alive) setState({ key, prices, loading: false });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [key]);
+  return shown;
+}
 const obj = (v: any): Record<string, any> =>
   v && typeof v === "object" ? v : {};
 export function parseCardPrice(
@@ -181,13 +281,30 @@ export function useCardPrice(id?: string, finish: Finish = "matte") {
     finish: Finish;
     price: CardPrice | null;
     loading: boolean;
-  }>({ id, finish, price: null, loading: !!id });
+  }>({
+    id,
+    finish,
+    price: id ? (knownPrices()[id + ":" + finish]?.price ?? null) : null,
+    loading: !!id,
+  });
   useEffect(() => {
     let alive = true;
     if (!id) return;
-    setState({ id, finish, price: null, loading: true });
-    void resolveCardPrice(id, finish).then((price) => {
-      if (alive) setState({ id, finish, price, loading: false });
+    const previous = knownPrices()[id + ":" + finish];
+    setState({ id, finish, price: previous?.price ?? null, loading: true });
+    void resolveCardPrice(id, finish).then(async (price) => {
+      if (price) {
+        const usd = await priceUsd(price);
+        if (!(usd === null && previous?.usd != null))
+          rememberPrices({ [id + ":" + finish]: { price, usd } });
+      }
+      if (alive)
+        setState({
+          id,
+          finish,
+          price: price ?? previous?.price ?? null,
+          loading: false,
+        });
     });
     return () => {
       alive = false;
@@ -195,56 +312,23 @@ export function useCardPrice(id?: string, finish: Finish = "matte") {
   }, [id, finish]);
   return state.id === id && state.finish === finish
     ? state
-    : { price: null, loading: !!id };
+    : {
+        price: id ? (knownPrices()[id + ":" + finish]?.price ?? null) : null,
+        loading: !!id,
+      };
 }
 export function useCollectionValue(s: Save) {
-  const key = s.owned
-    .map((c) => c.cardId + ":" + c.finish)
-    .sort()
-    .join("|");
-  const [state, setState] = useState({
-    usd: 0,
-    eur: 0,
-    unknown: s.owned.length,
-    loading: !!s.owned.length,
-  });
-  useEffect(() => {
-    let alive = true;
-    const counts = new Map<
-      string,
-      { id: string; finish: Finish; count: number }
-    >();
-    for (const o of s.owned) {
-      const k = o.cardId + ":" + o.finish,
-        old = counts.get(k);
-      counts.set(k, {
-        id: o.cardId,
-        finish: o.finish,
-        count: (old?.count ?? 0) + 1,
-      });
-    }
-    let usd = 0,
-      eur = 0,
-      unknown = s.owned.length;
-    setState({ usd, eur, unknown, loading: !!unknown });
-    void Promise.all(
-      [...counts.values()].map(async (c) => {
-        const p = await resolveCardPrice(c.id, c.finish);
-        if (p) {
-          if (p.currency === "USD") usd += p.amount * c.count;
-          else eur += p.amount * c.count;
-          unknown -= c.count;
-        }
-        if (alive) setState({ usd, eur, unknown, loading: true });
-      }),
-    ).then(() => {
-      if (alive) setState({ usd, eur, unknown, loading: false });
-    });
-    return () => {
-      alive = false;
-    };
-  }, [key]);
-  return state;
+  const { prices, loading } = useOwnedPricingState(s);
+  let usd = 0,
+    eur = 0,
+    unknown = 0;
+  for (const c of s.owned) {
+    const p = prices[c.cardId + ":" + c.finish]?.price;
+    if (!p) unknown++;
+    else if (p.currency === "USD") usd += p.amount;
+    else eur += p.amount;
+  }
+  return { usd, eur, unknown, loading };
 }
 export const formatCardPrice = (p: CardPrice) =>
   new Intl.NumberFormat("en-US", {
@@ -302,30 +386,5 @@ export async function priceUsd(price: CardPrice): Promise<number | null> {
   return rate ? price.amount * rate : null;
 }
 export function useOwnedPrices(save: Save) {
-  const key = [...new Set(save.owned.map((c) => c.cardId + ":" + c.finish))]
-    .sort()
-    .join("|");
-  const [prices, setPrices] = useState<
-    Record<string, { price: CardPrice; usd: number | null }>
-  >({});
-  useEffect(() => {
-    let alive = true;
-    const found: typeof prices = {};
-    const entries = new Map(
-      save.owned.map((c) => [c.cardId + ":" + c.finish, c]),
-    );
-    void Promise.all(
-      [...entries].map(async ([key, c]) => {
-        const price = await resolveCardPrice(c.cardId, c.finish);
-        if (price) {
-          found[key] = { price, usd: await priceUsd(price) };
-          if (alive) setPrices({ ...found });
-        }
-      }),
-    );
-    return () => {
-      alive = false;
-    };
-  }, [key]);
-  return prices;
+  return useOwnedPricingState(save).prices;
 }

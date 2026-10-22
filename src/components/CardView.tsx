@@ -165,7 +165,7 @@ export function CardPrice({
           : undefined
       }
     >
-      {loading ? (
+      {loading && !price ? (
         compact ? (
           "…"
         ) : (

@@ -1,6 +1,6 @@
 {
   "name": "pack-mini",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,7 +16,9 @@
     "test:trade": "node tests/mini-trade-prefill.mjs",
     "test:update": "node tests/mini-update-browser.mjs",
     "test:arcade": "node tests/mini-arcade.mjs",
-    "test:trade-failures": "node tests/mini-trade-failures.mjs"
+    "test:trade-failures": "node tests/mini-trade-failures.mjs",
+    "test:cache": "node tests/mini-price-cache.mjs",
+    "test:host-error": "node tests/mini-host-error.mjs"
   },
   "dependencies": {
     "@aippy/runtime": "^0.4.1",

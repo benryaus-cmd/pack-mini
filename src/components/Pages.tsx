@@ -55,7 +55,9 @@ export function CollectionValue({ game }: { game: Game }) {
       </b>
       <small>
         {v.loading
-          ? "Finding market references…"
+          ? v.usd || v.eur
+            ? "Refreshing market references…"
+            : "Finding market references…"
           : v.unknown
             ? `${v.unknown} unpriced · references only`
             : "Market references · not coin value"}
