@@ -150,6 +150,7 @@ try {
     await p.getByRole("button", { name: "owned", exact: true }).click();
     assert.equal(await p.locator(".binder-slot").count(), 1);
     await p.locator('.binder-slot [aria-label="HAM 10"]').waitFor();
+    assert.equal(await p.locator(".mini-owned").innerText(), "5");
     await p.locator(".binder-slot").click();
     await p.getByLabel("Choose physical copy").waitFor();
     await p
@@ -176,6 +177,7 @@ try {
     });
     assert(!remaining.includes("copy-1"));
     assert(remaining.includes("copy-4"));
+    assert.equal(await p.locator(".mini-owned").innerText(), "4");
     await p.locator(".binder-slot").click();
     await p
       .getByLabel("Choose physical copy")
@@ -187,6 +189,47 @@ try {
     await p.getByRole("button", { name: /ALL ART/ }).click();
     // Fresh mount keeps filter 'owned'; switch all to exercise automatic pagination.
     await p.getByRole("button", { name: "all", exact: true }).click();
+    assert.equal(
+      await p
+        .locator(".binder-grid")
+        .evaluate(
+          (e) => getComputedStyle(e).gridTemplateColumns.split(" ").length,
+        ),
+      4,
+    );
+    await p
+      .getByRole("button", { name: "Cards per row: 4. Switch to 3." })
+      .click();
+    assert.equal(
+      await p
+        .locator(".binder-grid")
+        .evaluate(
+          (e) => getComputedStyle(e).gridTemplateColumns.split(" ").length,
+        ),
+      3,
+    );
+    await p
+      .getByRole("button", { name: "Cards per row: 3. Switch to 4." })
+      .click();
+    assert.equal(
+      await p
+        .locator(".binder-grid")
+        .evaluate(
+          (e) => getComputedStyle(e).gridTemplateColumns.split(" ").length,
+        ),
+      4,
+    );
+    const missingStyle = await p
+      .locator(".binder-slot.missing .card-view")
+      .first()
+      .evaluate((e) => ({
+        opacity: getComputedStyle(e).opacity,
+        filter: getComputedStyle(e).filter,
+      }));
+    assert.deepEqual(missingStyle, {
+      opacity: "0.36",
+      filter: "grayscale(0.8)",
+    });
     const initial = await p.locator(".binder-slot").count();
     await p
       .locator(".page-scroll")
@@ -205,6 +248,10 @@ try {
     assert.equal(await p.locator(".binder-slot").count(), 1);
     await p.screenshot({ path: `test-results/mini11-binder-${width}.png` });
     await p.getByRole("button", { name: "VALUE ↓ · OWNED" }).click();
+    await p.getByRole("button", { name: "COPIES ↓ · OWNED" }).click();
+    assert.equal(await p.locator(".binder-slot").count(), 1);
+    assert.equal(await p.locator(".mini-owned").innerText(), "4");
+    await p.getByRole("button", { name: "COPIES ↓ · OWNED" }).click();
     await p
       .locator(".page-scroll")
       .evaluate((e) => (e.scrollTop = e.scrollHeight));
@@ -218,11 +265,49 @@ try {
       }),
       662,
     );
+    await p.evaluate(async () => {
+      const { transact } = await import("/src/services/persistence.ts");
+      const { cardById } = await import("/src/game/catalogue.ts");
+      const c = [...cardById.values()].find(
+        (c) => c.artId !== cardById.get("en_base1-4").artId,
+      );
+      await transact(localStorage.getItem("packmini-browser-id"), (s) => ({
+        ...s,
+        owned: [
+          ...s.owned,
+          ...[0, 1].map((i) => ({
+            instanceId: "second-" + i,
+            cardId: c.id,
+            setId: c.setId,
+            finish: "gloss",
+            tier: c.tier,
+            obtainedAt: 1,
+            openingId: "seed",
+          })),
+        ],
+      }));
+    });
+    await p.reload();
+    await p
+      .getByRole("navigation")
+      .getByRole("button", { name: "CARDS", exact: true })
+      .click();
+    await p.getByRole("button", { name: /ALL ART/ }).click();
+    await p.getByRole("button", { name: "COPIES ↓ · OWNED" }).click();
+    assert.deepEqual(await p.locator(".mini-owned").allTextContents(), [
+      "4",
+      "2",
+    ]);
+    await p
+      .locator(".binder-slot")
+      .first()
+      .locator('[aria-label="HAM 10"]')
+      .waitFor();
     await context.close();
   }
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: 280/390px safe tilt, armed swipes, HAM grading, compact controls, five-column summary, completed close, big hits, highest-copy slot, exact ungraded sale, sticky controls, automatic pagination, owned value sort.",
+    "PASS: 280/390px safe tilt, armed swipes, HAM grading, compact controls, five-column summary, completed close, big hits, highest-copy slot, exact ungraded sale, sticky controls, automatic pagination, owned value sort, numeric copy counts and descending copy sort.",
   );
 } finally {
   await browser.close();

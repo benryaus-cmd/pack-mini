@@ -1,6 +1,6 @@
 {
   "name": "pack-mini",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,8 @@
     "format": "prettier --write src tests build scripts *.ts *.html *.json docs/*.md",
     "test:trade": "node tests/mini-trade-prefill.mjs",
     "test:update": "node tests/mini-update-browser.mjs",
-    "test:arcade": "node tests/mini-arcade.mjs"
+    "test:arcade": "node tests/mini-arcade.mjs",
+    "test:trade-failures": "node tests/mini-trade-failures.mjs"
   },
   "dependencies": {
     "@aippy/runtime": "^0.4.1",

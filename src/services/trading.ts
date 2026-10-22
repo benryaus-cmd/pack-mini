@@ -1,22 +1,22 @@
+import { TradeRecords, TradeRecordError } from "./tradeRecords";
 import { generateId } from "../game/uuid";
 import { useEffect, useSyncExternalStore } from "react";
 import type { Game } from "./useGame";
 import type { OwnedCard, Save } from "../game/types";
 import { cardById } from "../game/catalogue";
-import { multiplayer, ApiError } from "./multiplayer";
+import { multiplayer } from "./multiplayer";
 import {
   prepareTrade,
   completeTrade,
   cancelPreparedTrade,
   tradeDigest,
-  tradeRecordId,
   type TradeTerms,
   type TradeJournal,
 } from "../game/trading";
 export interface LiveTrade extends TradeTerms {
   versions: Record<string, number>;
   ready: string[];
-  status: "draft" | "settling" | "completed" | "cancelled";
+  status: "draft" | "unsubmitted" | "settling" | "completed" | "cancelled";
 }
 interface TradeState {
   session: LiveTrade | null;
@@ -165,10 +165,8 @@ class Trading {
       if (d.action === "ready") {
         let terms: any;
         try {
-          const r = await multiplayer.request(
-            "/data/trading/" + tradeRecordId(d.id, other),
-          );
-          terms = r.record?.data;
+          const record = await this.records().read(d.id, other);
+          terms = record?.data;
         } catch {
           return;
         }
@@ -307,7 +305,7 @@ class Trading {
       await this.recover();
       check();
       if (!this.game.save?.trades?.some((j) => j.id === t!.id)) {
-        const saved = await this.game.update((s) => ({
+        const saved: Save = await this.game.update((s) => ({
           ...s,
           trades: [
             ...(s.trades ?? []).slice(-49),
@@ -331,64 +329,124 @@ class Trading {
     } else if (d.action === "receipt") await this.recover();
     check();
   }
+  private records() {
+    const check = this.guard();
+    return new TradeRecords((path, options) => {
+      check();
+      return multiplayer.request(path, options);
+    });
+  }
   private async store(terms: TradeTerms, status: TradeJournal["status"]) {
     const check = this.guard();
-    const epoch = this.epoch;
-    const id = tradeRecordId(terms.id, this.me());
-    let revision = 0;
-    try {
-      const r = await multiplayer.request("/data/trading/" + id);
-      revision = r.record?.revision ?? 0;
-    } catch (e) {
-      if (!(e instanceof ApiError) || e.status !== 404) throw e;
-    }
+    const record = await this.records().write(terms, this.me(), status);
     check();
-    const data = {
-      ...terms,
-      digest: tradeDigest(terms),
-      status,
-      at: Date.now(),
-    };
-    await multiplayer.request("/data/trading/" + id, {
-      method: "PUT",
-      body: JSON.stringify({ data, expectedRevision: revision }),
-    });
-    check();
+    return record;
   }
   async confirm() {
-    const check = this.guard();
-    const epoch = this.epoch;
+    const check = this.guard(),
+      epoch = this.epoch;
     const t = this.state.session;
-    if (!t || this.state.busy || t.status !== "draft") return;
+    if (
+      !t ||
+      this.state.busy ||
+      this.recovering ||
+      !["draft", "unsubmitted"].includes(t.status)
+    )
+      return;
+    const preparedNew = !this.game!.save!.trades?.some((j) => j.id === t.id);
+    let published = false;
     this.patch({ busy: true, error: "" });
     try {
       const me = this.me();
-      const s = await this.game!.update((s) => prepareTrade(s, t, me));
+      const saved = await this.game!.update((s) => prepareTrade(s, t, me));
       check();
-      check();
-      this.game = { ...this.game!, save: s };
+      this.game = { ...this.game!, save: saved };
       this.patch({
         session: {
           ...t,
-          ready: [...new Set([...t.ready, me])],
+          ready: t.ready.filter((p) => p !== me),
           status: "settling",
         },
       });
       await this.store(t, "ready");
       check();
+      published = true;
       this.patch({
         session: {
-          ...t,
-          ready: [...new Set([...t.ready, me])],
+          ...this.state.session!,
+          ready: [...new Set([...this.state.session!.ready, me])],
           status: "settling",
         },
       });
       this.packet("ready");
-      await this.recover();
-      check();
     } catch (e) {
       if (epoch !== this.epoch) return;
-      this.patch({ error: (e as Error).message });
+      if (
+        !published &&
+        preparedNew &&
+        e instanceof TradeRecordError &&
+        e.definitive
+      ) {
+        const saved = await this.game!.update((s) =>
+          cancelPreparedTrade(s, t.id),
+        );
+        check();
+        this.game = { ...this.game!, save: saved };
+        this.patch({
+          session: { ...t, ready: [], status: "cancelled" },
+          error: e.message,
+        });
+        this.packet("cancel");
+      } else
+        this.patch({
+          session: {
+            ...this.state.session!,
+            status: published ? "settling" : "unsubmitted",
+          },
+          error: (e as Error).message,
+        });
+    } finally {
+      if (epoch === this.epoch) this.patch({ busy: false });
+    }
+    if (published && epoch === this.epoch) await this.recover();
+  }
+  private async cancelUnsubmitted(t: LiveTrade) {
+    const check = this.guard(),
+      epoch = this.epoch;
+    if (this.recovering)
+      throw Error("Checking this trade. Try cancel again in a moment.");
+    this.patch({ busy: true, error: "" });
+    try {
+      const records = this.records();
+      const own = await records.read(t.id, this.me());
+      check();
+      if (own && own.data.status !== "cancelled")
+        throw Error(
+          "Confirmation is already on the server. Retry recovery to finish safely.",
+        );
+      const other = await records.read(
+        t.id,
+        t.parties.find((p) => p !== this.me())!,
+      );
+      check();
+      if (other?.data.status === "completed")
+        throw Error(
+          "The other collector has completed this trade. Retry recovery to finish safely.",
+        );
+      await this.store(t, "cancelled");
+      check();
+      const saved = await this.game!.update((s) =>
+        cancelPreparedTrade(s, t.id, t),
+      );
+      check();
+      this.game = { ...this.game!, save: saved };
+      this.patch({
+        session: { ...t, ready: [], status: "cancelled" },
+        error: "",
+      });
+      this.packet("cancel");
+    } catch (e) {
+      if (epoch === this.epoch) this.patch({ error: (e as Error).message });
     } finally {
       if (epoch === this.epoch) this.patch({ busy: false });
     }
@@ -403,9 +461,7 @@ class Trading {
         (j) => j.id === t.id && j.status === "ready",
       )
     )
-      throw Error(
-        "Confirmation saved. Waiting for the other collector or recovering their decision.",
-      );
+      return this.cancelUnsubmitted(t);
     this.patch({ busy: true });
     try {
       await this.store(t, "cancelled");
@@ -431,89 +487,114 @@ class Trading {
   async recover() {
     if (
       this.recovering ||
+      this.state.busy ||
       !this.game?.profile ||
       !this.game.save ||
       multiplayer.snapshot().status !== "online"
     )
       return;
     this.recovering = true;
-    const check = this.guard();
-    const epoch = this.epoch;
+    const check = this.guard(),
+      epoch = this.epoch;
     try {
       const me = this.me();
       for (const j of (this.game.save.trades ?? []).filter(
         (j) => j.status === "ready",
       )) {
-        if (!this.state.session || this.state.session.id !== j.id)
+        const records = this.records();
+        const own = await records.read(j.id, me);
+        check();
+        const other = await records.read(
+          j.id,
+          j.parties.find((p) => p !== me)!,
+        );
+        check();
+        const current =
+          this.state.session?.id === j.id ? this.state.session : null;
+        const base = {
+          ...j,
+          versions: current?.versions ?? {},
+          ready: current?.ready ?? [],
+        };
+        if (own && own.data.digest !== j.digest) {
           this.patch({
-            session: { ...j, versions: {}, ready: [me], status: "settling" },
+            session: { ...base, status: "unsubmitted" },
+            error:
+              "The server confirmation differs from this saved trade. Your cards remain reserved.",
           });
-        await this.store(j, "ready");
-        check();
-        this.packet("ready");
-        let other: any;
-        try {
-          const r = await multiplayer.request(
-            "/data/trading/" +
-              tradeRecordId(
-                j.id,
-                j.parties.find((p) => p !== me)!,
-              ),
-          );
-          other = r.record?.data;
-        } catch (e) {
-          if (e instanceof ApiError && e.status === 404) continue;
-          throw e;
+          continue;
         }
-        check();
-        if (other?.status === "cancelled") {
-          const s: Save = await this.game.update((s) =>
+        if (
+          own?.data.status === "cancelled" ||
+          other?.data.status === "cancelled"
+        ) {
+          const saved: Save = await this.game.update((s) =>
             cancelPreparedTrade(s, j.id, j),
           );
           check();
-          this.game = { ...this.game, save: s };
+          this.game = { ...this.game, save: saved };
           this.patch({
-            session: { ...this.state.session!, status: "cancelled" },
+            session: { ...base, ready: [], status: "cancelled" },
             error: "",
           });
-        } else if (other?.status === "ready" && other.digest !== j.digest) {
-          await this.store(j, "cancelled");
-          const s: Save = await this.game.update((s) =>
-            cancelPreparedTrade(s, j.id, j),
-          );
-          check();
-          this.game = { ...this.game, save: s };
+          continue;
+        }
+        if (other && other.data.digest !== j.digest) {
           this.patch({
-            session: { ...this.state.session!, status: "cancelled" },
-            error: "Offers changed during confirmation. Start a fresh trade.",
+            session: { ...base, status: "unsubmitted" },
+            error:
+              "The saved offers differ. Review this trade before retrying.",
           });
-        } else if (
-          ["ready", "completed"].includes(other?.status) &&
-          other.digest === j.digest &&
-          tradeDigest(other) === j.digest
+          continue;
+        }
+        if (!own && other?.data.status !== "completed") {
+          this.patch({
+            session: {
+              ...base,
+              ready: base.ready.filter((p) => p !== me),
+              status: "unsubmitted",
+            },
+            error:
+              "This trade was saved on this device but its confirmation was not delivered. Retry or cancel this unsent trade.",
+          });
+          continue;
+        }
+        this.patch({
+          session: {
+            ...base,
+            ready: [...new Set([...base.ready, me])],
+            status: "settling",
+          },
+          error: "",
+        });
+        this.packet("ready");
+        if (
+          other &&
+          ["ready", "completed"].includes(other.data.status) &&
+          other.data.digest === j.digest &&
+          tradeDigest(other.data) === j.digest
         ) {
-          const s: Save = await this.game.update((s) =>
+          const saved: Save = await this.game.update((s) =>
             completeTrade(s, j, me),
           );
           check();
-          this.game = { ...this.game, save: s };
+          this.game = { ...this.game, save: saved };
           this.patch({
-            session: {
-              ...this.state.session!,
-              status: "completed",
-              ready: j.parties,
-            },
+            session: { ...base, status: "completed", ready: j.parties },
             error: "",
           });
           await this.store(j, "completed");
+          check();
           this.packet("receipt");
         }
       }
     } catch (e) {
-      if (epoch !== this.epoch) return;
-      this.patch({
-        error: "Trade saved; recovery will retry. " + (e as Error).message,
-      });
+      if (epoch === this.epoch)
+        this.patch({
+          error:
+            "Your cards remain reserved. Recovery could not verify this trade. " +
+            (e as Error).message,
+        });
     } finally {
       if (epoch === this.epoch) this.recovering = false;
     }
@@ -532,7 +613,8 @@ export const trading = new Trading();
 export function useTrading(game: Game) {
   trading.bind(game);
   useEffect(() => {
-    if (!game.profile) return;
+    if (!game.profile || !game.save) return;
+    trading.bind(game);
     const stop = multiplayer.onEvent((e, d, f) => {
       void trading.accept(e, d, f).catch(() => {});
     });
@@ -545,6 +627,6 @@ export function useTrading(game: Game) {
       clearInterval(timer);
       trading.reset();
     };
-  }, [game.profile?.playerId]);
+  }, [game.profile?.playerId, !!game.save]);
   return useSyncExternalStore(trading.subscribe, trading.snapshot);
 }

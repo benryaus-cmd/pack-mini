@@ -20,15 +20,19 @@ Drag within the card to catch gloss/foil light. Drag at least 34% of the screen 
 
 Reverse Holos replaces the English binder. Holo/Reverse binder progress requires the owned finish; printed rarity stays separate. Ordinary saved `matte` cards retain their IDs and values while displaying gloss. Exact representative-print variants come from the pinned TCGdex source in `docs/MINI-FINISH-AUDIT.json`; scans are shared per printing, with masked foil distinguishing treatments. Missing variant metadata stays conservative. Existing inventories/grades and unfinished English packs remain valid.
 
-Binder controls stay at the top, more art loads on scroll, and VALUE sorts owned cards by USD market reference (unpriced cards last). Slots show the best copy: HAM10 > HAM9 > HAM8 > ungraded > HAM7. Open it to select the exact copy/finish before grading or selling; the confirmation identifies its grade, finish and instance suffix.
+Binder controls stay at the top, more art loads on scroll, and VALUE sorts owned cards by USD market reference (unpriced cards last). Binders default to four cards across, with a3/4-across toggle, with missing artwork dimmed to36% opacity and80% grayscale. Owned slots show their copy count. COPIES sorts owned slots by the most copies first, counting only finishes eligible for that binder. Slots show the best copy: HAM10 > HAM9 > HAM8 > ungraded > HAM7. Open it to select the exact copy/finish before grading or selling; the confirmation identifies its grade, finish and instance suffix.
 
 A short startup screen warms all low-resolution scans into a persistent cache with six workers and one retry. After 4.5s the game is usable while remaining scans continue; network/cache failures preserve normal image fallbacks. High-resolution scans load progressively when enlarged. Big-hit history shows the latest five still-owned cards valued at US$10+, with reveal celebrations at $10/$50/$100/$500. EUR values use an available real exchange rate before entering dollar thresholds; unknown values do not receive invented valuations.
 
 Coin Drop locks one 1–5-ball batch until all settle and retains its aggregate stake/payout/net across reload. Social showoffs persist in bounded server history rather than expiring as trade invitations. Withdrawals retain compact removal records independently of rolling messages, with retired-history cutoffs preserving known active posts. Completed/confirmed trades continue to use their existing immutable instance/digest checks.
 
+## 1.1.1 social repair
+
+The public server/room editor is removed; MINI connects to its configured game2 lobby. Chat leaves 3% side gutters for page scrolling. Confirmations use the existing generic trading store, with the existing social store as fallback when the trading route rejects writes. The server receipt precedes a ready notification. Reopened local-only confirmations show Retry or Cancel unsent trade; cancellation is persisted before releasing exact-copy reservations. Confirmations already on the server remain reserved for recovery. Existing saves and grades stay intact.
+
 ## Run and verify
 
-Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`, `npm run test:update`, `npm run test:arcade`. `CHROMIUM_PATH` selects an installed browser.
+Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`, `npm run test:update`, `npm run test:arcade`, `npm run test:trade-failures`. `CHROMIUM_PATH` selects an installed browser.
 
 See [Aippy import](AIPPY-IMPORT.md), [catalogue audit](docs/MINI-CATALOGUE-AUDIT.json), [credits](ASSET-CREDITS.md) and [verification](docs/MINI-VERIFICATION.md).
 

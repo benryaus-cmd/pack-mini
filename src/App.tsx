@@ -446,9 +446,11 @@ export default function App({
                     onClick={() => setOverlay("trades")}
                   >
                     🎴 Live trade{" "}
-                    {trade.session.status === "settling"
-                      ? "· confirmation saved"
-                      : "offer"}{" "}
+                    {trade.session.status === "unsubmitted"
+                      ? "· needs attention"
+                      : trade.session.status === "settling"
+                        ? "· awaiting completion"
+                        : "offer"}{" "}
                     — OPEN →
                   </button>
                 )}

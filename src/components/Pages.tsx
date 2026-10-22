@@ -304,12 +304,14 @@ export function Collection({
     [q, setQ] = useState(""),
     [filter, setFilter] = useState("all"),
     [limit, setLimit] = useState(48),
-    [byValue, setByValue] = useState(false);
+    [byValue, setByValue] = useState(false),
+    [byCopies, setByCopies] = useState(false),
+    [columns, setColumns] = useState<3 | 4>(4);
   const sentinel = useRef<HTMLDivElement>(null);
   const prices = useOwnedPrices(game.save);
   useEffect(() => {
     setLimit(48);
-  }, [id, filter, byValue]);
+  }, [id, filter, byValue, byCopies]);
   useEffect(() => {
     if (!sentinel.current) return;
     const observer = new IntersectionObserver(
@@ -323,7 +325,7 @@ export function Collection({
     );
     observer.observe(sentinel.current);
     return () => observer.disconnect();
-  }, [id, limit, filter, q, byValue]);
+  }, [id, limit, filter, q, byValue, byCopies]);
   const s = game.save,
     b =
       id === "ham10"
@@ -349,6 +351,19 @@ export function Collection({
       : b
         ? new Set(binderOwned(b, s, allCards).map((c) => c.id))
         : new Set<string>();
+  const copiesFor = (
+    c: import("../game/types").CardDefinition & { galleryInstanceId?: string },
+  ) =>
+    s.owned.filter(
+      (o) =>
+        binderAcceptsFinish(id ?? "all", o.finish) &&
+        (id === "ham10"
+          ? o.instanceId === c.galleryInstanceId
+          : o.cardId === c.id ||
+            (id !== "japanese" &&
+              (cardById.get(o.cardId)?.artId ?? o.cardId) ===
+                (c.artId ?? c.id))),
+    );
   const cards =
     b?.cards
       .filter(
@@ -357,15 +372,12 @@ export function Collection({
           (filter === "all" ||
             (filter === "owned" ? completed.has(c.id) : !completed.has(c.id))),
       )
-      .filter((c) => !byValue || completed.has(c.id))
+      .filter((c) => !(byValue || byCopies) || completed.has(c.id))
       .sort((a, b) => {
+        if (byCopies) return copiesFor(b).length - copiesFor(a).length;
         if (!byValue) return 0;
         const value = (c: typeof a) => {
-          const copies = s.owned.filter(
-            (o) =>
-              binderAcceptsFinish(id ?? "all", o.finish) &&
-              (o.cardId === c.id || cardById.get(o.cardId)?.artId === c.artId),
-          );
+          const copies = copiesFor(c);
           return Math.max(
             -1,
             ...copies.map((o) => prices[o.cardId + ":" + o.finish]?.usd ?? -1),
@@ -471,26 +483,38 @@ export function Collection({
               <button
                 className={byValue ? "active" : ""}
                 aria-pressed={byValue}
-                onClick={() => setByValue((v) => !v)}
+                onClick={() => {
+                  setByValue((v) => !v);
+                  setByCopies(false);
+                }}
               >
                 VALUE ↓ · OWNED
               </button>
+              <button
+                className={byCopies ? "active" : ""}
+                aria-pressed={byCopies}
+                onClick={() => {
+                  setByCopies((v) => !v);
+                  setByValue(false);
+                }}
+              >
+                COPIES ↓ · OWNED
+              </button>
+              <button
+                onClick={() => setColumns((n) => (n === 4 ? 3 : 4))}
+                aria-label={`Cards per row: ${columns}. Switch to ${columns === 4 ? 3 : 4}.`}
+              >
+                {columns} ACROSS ↔
+              </button>
             </div>
           </div>
-          <div className="binder-grid">
+          <div
+            className="binder-grid"
+            style={{ "--binder-columns": columns } as CSSProperties}
+          >
             {cards.slice(0, limit).map((c, slotIndex) => {
-              const own = bestCopy(
-                s.owned
-                  .filter((o) => binderAcceptsFinish(b.id, o.finish))
-                  .filter((o) =>
-                    b.id === "ham10"
-                      ? o.instanceId ===
-                        ("galleryInstanceId" in c ? c.galleryInstanceId : "")
-                      : o.cardId === c.id ||
-                        (b.id !== "japanese" &&
-                          cardById.get(o.cardId)?.artId === c.artId),
-                  ),
-              );
+              const copies = copiesFor(c);
+              const own = bestCopy(copies);
               const shown = own ? cardById.get(own.cardId)! : c;
               const finish =
                 own?.finish ??
@@ -527,7 +551,14 @@ export function Collection({
                         : "Unpriced"}
                     </small>
                   )}
-                  {completed.has(c.id) && <b className="mini-owned">✓</b>}
+                  {copies.length > 0 && (
+                    <b
+                      className="mini-owned"
+                      aria-label={`${copies.length} copies owned`}
+                    >
+                      {copies.length}
+                    </b>
+                  )}
                 </button>
               );
             })}

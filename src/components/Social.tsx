@@ -44,9 +44,6 @@ export function Social({
     [text, setText] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [editing, setEditing] = useState(false),
-    [host, setHost] = useState(multiplayer.host),
-    [room, setRoom] = useState(network.room),
     [selected, setSelected] = useState<Collector | null>(null),
     [leaders, setLeaders] = useState<any[]>([]),
     [period, setPeriod] = useState<"daily" | "all-time">("daily"),
@@ -238,51 +235,7 @@ export function Social({
                 : "Offline"}{" "}
           <small>· {network.room}</small>
         </span>
-        <button
-          aria-label="Server and room"
-          onClick={() => setEditing((v) => !v)}
-        >
-          <Link size={13} />
-        </button>
       </div>
-      {editing && (
-        <form
-          className="ms-server"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void act(() => {
-              const u = new URL(host);
-              if (
-                u.protocol !== "https:" &&
-                !(
-                  u.protocol === "http:" &&
-                  ["localhost", "127.0.0.1"].includes(u.hostname)
-                )
-              )
-                throw Error("Use an HTTPS server.");
-              if (!/^[\w-]{1,32}$/.test(room))
-                throw Error(
-                  "Use 1–32 letters, numbers or dashes for the room.",
-                );
-              localStorage.setItem("packmini-host", u.origin);
-              multiplayer.connect(u.origin, room);
-              setEditing(false);
-            });
-          }}
-        >
-          <input
-            aria-label="Multiplayer server"
-            value={host}
-            onChange={(e) => setHost(e.target.value)}
-          />
-          <input
-            aria-label="Multiplayer room"
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-          />
-          <button>Connect</button>
-        </form>
-      )}
       <div className="tabs social-tabs">
         {[
           ["lounge", "Chat"],

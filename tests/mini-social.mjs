@@ -3,6 +3,7 @@ import http from "node:http";
 import assert from "node:assert/strict";
 import { chromium, launchOptions, dependency } from "./browser-support.mjs";
 const { WebSocketServer } = dependency("ws");
+const missingTrading = process.env.PACK_MINI_MISSING_TRADING === "1";
 const records = new Map(),
   clients = new Map();
 let next = 0;
@@ -56,6 +57,8 @@ const api = http.createServer(async (req, res) => {
     return send({
       records: [...records.entries()].map(([id, r]) => ({ id, ...r })),
     });
+  if (missingTrading && path.includes("/data/trading/"))
+    return send({ error: "Unknown schema" }, 404);
   if (path.includes("/data/social/") || path.includes("/data/trading/")) {
     const id = path.split("/").at(-1),
       old = records.get(id);
@@ -228,6 +231,20 @@ try {
     await window.ms.multiplayer.history();
   });
   await pages[0].getByText("History message 39", { exact: true }).waitFor();
+  assert.equal(
+    await pages[0].getByRole("button", { name: "Server and room" }).count(),
+    0,
+  );
+  assert.equal(await pages[0].getByLabel("Multiplayer server").count(), 0);
+  const gutter = await pages[0].locator(".ms-chat").evaluate((e) => {
+    const p = e.parentElement,
+      s = getComputedStyle(p),
+      available =
+        p.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+    return parseFloat(getComputedStyle(e).marginLeft) / available;
+  });
+  assert(gutter >= 0.029 && gutter <= 0.031, "chat has a 3% scrolling gutter");
+
   assert(
     await pages[0]
       .locator(".ms-chat")
@@ -491,17 +508,23 @@ try {
       { timeout: 20000 },
     );
   for (let i = 0; i < 2; i++) {
-    await pages[i].waitForFunction(async (id) => {
-      try {
-        const { tradeRecordId } = await import("/src/game/trading.ts");
-        const r = await window.ms.multiplayer.request(
-          "/data/trading/" + tradeRecordId(id, window.ms.profile.playerId),
-        );
-        return r.record?.data?.status === "completed";
-      } catch {
-        return false;
-      }
-    }, tradeId);
+    await pages[i].waitForFunction(
+      async ({ id, missingTrading }) => {
+        try {
+          const { tradeRecordId } = await import("/src/game/trading.ts");
+          const r = await window.ms.multiplayer.request(
+            "/data/" +
+              (missingTrading ? "social" : "trading") +
+              "/" +
+              tradeRecordId(id, window.ms.profile.playerId),
+          );
+          return r.record?.data?.status === "completed";
+        } catch {
+          return false;
+        }
+      },
+      { id: tradeId, missingTrading },
+    );
     const value = await pages[i].evaluate(async () => {
       const { loadSave } = await import("/src/services/persistence.ts");
       return loadSave(window.ms.profile.playerId);

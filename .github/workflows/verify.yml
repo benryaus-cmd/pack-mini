@@ -18,3 +18,5 @@ jobs:
       - run: npm run test:trade
       - run: npm run test:arcade
       - run: npm run test:update
+      - run: npm run test:trade-failures
+      - run: PACK_MINI_MISSING_TRADING=1 npm run test:social

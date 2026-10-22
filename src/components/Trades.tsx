@@ -180,7 +180,7 @@ export function Trades({ game }: { game: Game }) {
               )}
             </>
           )}
-          {t.status === "draft" && (
+          {["draft", "unsubmitted"].includes(t.status) && (
             <button
               className="primary full"
               disabled={
@@ -191,22 +191,42 @@ export function Trades({ game }: { game: Game }) {
               }
               onClick={() => act(() => trading.confirm())}
             >
-              CONFIRM THESE CARDS
+              {t.status === "unsubmitted"
+                ? "RETRY SENDING CONFIRMATION"
+                : "CONFIRM THESE CARDS"}
             </button>
           )}
           {t.status === "settling" && (
             <p className="success-notice" role="status">
-              Your confirmation is saved. Waiting for the other collector;
-              recovery continues automatically.
+              {t.ready.includes(me)
+                ? "Your confirmation was sent. Waiting for the other collector; recovery continues automatically."
+                : "Saving your confirmation… your cards have not been exchanged."}
             </p>
           )}
-          {!t.ready.includes(me) && (
+          {t.status === "unsubmitted" && (
+            <p className="notice">
+              This saved trade was never delivered. Retry sending it, or cancel
+              to release these cards and trade with someone else.
+            </p>
+          )}
+          {(!t.ready.includes(me) || t.status === "unsubmitted") && (
             <button
               className="secondary full"
               disabled={busy}
               onClick={() => act(() => trading.decline())}
             >
-              DECLINE TRADE
+              {t.status === "unsubmitted"
+                ? "CANCEL UNSENT TRADE"
+                : "DECLINE TRADE"}
+            </button>
+          )}
+          {t.status === "settling" && (
+            <button
+              className="secondary full"
+              disabled={busy}
+              onClick={() => act(() => trading.recover())}
+            >
+              RETRY TRADE RECOVERY
             </button>
           )}
         </>

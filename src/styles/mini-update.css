@@ -563,3 +563,31 @@
     font-size: 7px;
   }
 }
+
+/* Keep a thumb-sized strip of parent scrolling space outside the chat. */
+.mini-social .ms-chat,
+.mini-social .chat-composer {
+  width: 94%;
+  margin-inline: 3%;
+  box-sizing: border-box;
+}
+
+.mini-owned {
+  min-width: 22px;
+  width: auto;
+  padding-inline: 5px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-collection .binder-grid {
+  grid-template-columns: repeat(
+    var(--binder-columns, 4),
+    minmax(0, 1fr)
+  ) !important;
+}
+.mini-collection .binder-slot.missing .card-view {
+  opacity: 0.36;
+  filter: grayscale(0.8);
+}

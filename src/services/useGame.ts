@@ -1,3 +1,4 @@
+import { DEFAULT_HOST } from "./protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserInfo } from "@aippy/runtime/user";
 import type { Profile, Save } from "../game/types";
@@ -95,11 +96,10 @@ export function useGame() {
   }, [profile, save]);
   useEffect(() => {
     if (!profile || !save) return;
-    let host: string | undefined;
     try {
-      host = localStorage.getItem("packmini-host") || undefined;
+      localStorage.removeItem("packmini-host");
     } catch {}
-    multiplayer.connect(host);
+    multiplayer.connect(DEFAULT_HOST, "mini-lobby");
     return () => multiplayer.disconnect();
   }, [profile?.playerId, !!save]);
   return {
