@@ -129,7 +129,7 @@ export function Trades({ game }: { game: Game }) {
               </section>
             ))}
           </div>
-          {t.status === "draft" && !t.ready.length && t.protocol !== 2 && (
+          {t.status === "draft" && !t.ready.length && !t.protocol && (
             <>
               <label className="search">
                 <input
@@ -215,7 +215,7 @@ export function Trades({ game }: { game: Game }) {
           )}
           {t.status === "settling" && (
             <p className="success-notice" role="status">
-              {t.protocol === 2
+              {!!t.protocol
                 ? "Checking the offering device and exchanging the exact cards automatically…"
                 : t.ready.includes(me)
                   ? "Your confirmation was sent. Waiting for the other collector; recovery continues automatically."
@@ -228,7 +228,7 @@ export function Trades({ game }: { game: Game }) {
               to release these cards and trade with someone else.
             </p>
           )}
-          {(t.protocol === 2 ||
+          {(!!t.protocol ||
             !t.ready.includes(me) ||
             t.status === "unsubmitted") && (
             <button
@@ -236,7 +236,7 @@ export function Trades({ game }: { game: Game }) {
               disabled={busy}
               onClick={() => act(() => trading.decline())}
             >
-              {t.protocol === 2
+              {!!t.protocol
                 ? "CANCEL / CLOSE TRADE"
                 : t.status === "unsubmitted"
                   ? "CANCEL UNSENT TRADE"

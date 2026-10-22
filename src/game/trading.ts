@@ -1,7 +1,7 @@
 import type { OwnedCard, Save } from "./types.ts";
 export interface TradeTerms {
   id: string;
-  protocol?: 2;
+  protocol?: 2 | 3;
   devices?: Record<string, string>;
   expiresAt?: number;
   offerId?: string;
@@ -14,12 +14,14 @@ export interface TradeJournal extends TradeTerms {
   at: number;
   acknowledged?: boolean;
   commitAttempted?: boolean;
+  decision?: "commit" | "abort";
 }
 /** Pending swaps and unsent application receipts outlive the bounded history. */
 export function retainTradeJournals(journals: TradeJournal[]) {
   const pending = (j: TradeJournal) =>
     j.status === "ready" ||
-    (j.protocol === 2 && j.status === "completed" && !j.acknowledged);
+    (((j.protocol === 2 && j.status === "completed") || j.protocol === 3) &&
+      !j.acknowledged);
   return [
     ...journals.filter(pending),
     ...journals.filter((j) => !pending(j)).slice(-49),
@@ -28,10 +30,10 @@ export function retainTradeJournals(journals: TradeJournal[]) {
 export function tradeDigest(t: TradeTerms): string {
   const text = JSON.stringify([
     t.id,
-    ...(t.protocol === 2
+    ...(t.protocol === 2 || t.protocol === 3
       ? [
           [
-            2,
+            t.protocol,
             [...t.parties].sort().map((p) => [p, t.devices?.[p]]),
             t.expiresAt,
             t.offerId,

@@ -14,9 +14,9 @@ import type { Plugin } from "vite";
 import { applyPackverseHostPatches } from "./packverse-host-patches";
 
 const MANIFEST_URL =
-  "https://raw.githubusercontent.com/benryaus-cmd/pack-mini/main/updates/pack-mini-1.1.3.json";
-const IMPORT_VERSION = "pack-mini-1.1.3";
-const EXPECTED_FILES = 76;
+  "https://raw.githubusercontent.com/benryaus-cmd/pack-mini/main/updates/pack-mini-1.1.4.json";
+const IMPORT_VERSION = "pack-mini-1.1.4";
+const EXPECTED_FILES = 77;
 const REQUIRED_FILES = [
   "package.json",
   "build/aippy-user-compat.ts",
@@ -95,7 +95,7 @@ function normalizeTarget(value: string): string {
 function parseManifest(raw: string): { baseUrl: URL; files: ManifestFile[] } {
   const document = asRecord(JSON.parse(raw) as unknown);
   const version = document.version ?? document.release;
-  if (version && ![IMPORT_VERSION, "1.1.3"].includes(String(version))) {
+  if (version && ![IMPORT_VERSION, "1.1.4"].includes(String(version))) {
     throw new Error(
       `Unexpected Packverse manifest version: ${String(version)}`,
     );

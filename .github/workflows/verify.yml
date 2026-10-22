@@ -22,3 +22,4 @@ jobs:
       - run: PACK_MINI_MISSING_TRADING=1 npm run test:social
       - run: npm run test:cache
       - run: npm run test:host-error
+      - run: npm run test:relay

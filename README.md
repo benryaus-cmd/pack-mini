@@ -42,6 +42,12 @@ Collection value, owned price sorting and big hits hydrate synchronously from th
 
 The supplied outer host handles startup/render failures with Copy Error and Try Again only, labelled PACK MINI. Its public error panels have no project-file callbacks or actions. Settings → temp save →1234 remains the private file-viewer path. The reported opaque Script error is still surfaced; retry behavior remains available.
 
+## 1.1.4 relay trades
+
+The live recording exposed a404 when creating generic trade records, before any client handshake could proceed. New trades now use device-local durable journals and Friend3's working WebSocket relay. The accepting device atomically commits or aborts in its own saved journal; the offering device verifies its posted authorization and exact inventory, applies first and sends its receipt. The accepting device then applies and acknowledges. Chunked bounded messages fit the existing relay envelope. Generic JSON record availability is not required for new swaps. Existing server-backed/legacy journals retain their separate recovery paths.
+
+Both collectors need this update and a fresh offer. A30-second timeout before commit saves an abort before releasing the accepting device's originals. After commit, only exact swap copies remain reserved during reconnect recovery while other cards stay tradable. Separate device IDs distinguish independent local collections under one Aippy account. The1.1.3 remembered-price and public-safe error screen changes are included.
+
 ## Run and verify
 
 Node24 recommended. `npm ci`, `npm run dev`, `npm run build`, `npm test`. Browser checks: `npm run test:browser`, `npm run test:social`, `npm run test:trade`, `npm run test:update`, `npm run test:arcade`, `npm run test:trade-failures`. `CHROMIUM_PATH` selects an installed browser.

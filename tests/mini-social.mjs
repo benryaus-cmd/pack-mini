@@ -3,7 +3,9 @@ import http from "node:http";
 import assert from "node:assert/strict";
 import { chromium, launchOptions, dependency } from "./browser-support.mjs";
 const { WebSocketServer } = dependency("ws");
+const noRecords = process.env.PACK_MINI_NO_RECORDS === "1";
 const missingTrading = process.env.PACK_MINI_MISSING_TRADING === "1";
+const recordCalls = [];
 const records = new Map(),
   clients = new Map();
 let next = 0;
@@ -53,6 +55,9 @@ const api = http.createServer(async (req, res) => {
     }
     return send({ messages });
   }
+  if (path.includes("/data/")) recordCalls.push(path);
+  if (noRecords && path.includes("/data/"))
+    return send({ error: "Not Found" }, 404);
   if (path.endsWith("/data/social"))
     return send({
       records: [...records.entries()].map(([id, r]) => ({ id, ...r })),
@@ -136,230 +141,244 @@ try {
     await p.waitForFunction(
       () => Object.keys(window.ms.multiplayer.snapshot().peers).length === 1,
     );
-  const message = "actual-message";
-  await pages[0].evaluate((id) => window.ms.social.vote(id, 1), message);
-  await pages[1].waitForFunction(() =>
-    window.ms.social
-      .snapshot()
-      .entries.some((e) => e.kind === "vote" && e.vote === 1),
-  );
-  await pages[0].evaluate((id) => window.ms.social.vote(id, -1), message);
-  await pages[1].waitForFunction(
-    () =>
-      window.ms.social.snapshot().entries.filter((e) => e.kind === "vote")
-        .length === 1 &&
-      window.ms.social.snapshot().entries.find((e) => e.kind === "vote")
-        .vote === -1,
-  );
-  const post = await pages[0].evaluate(async () => {
-    const { allCards } = await import("/src/game/catalogue.ts");
-    return window.ms.social.post([
-      { instanceId: "owned_a", cardId: allCards[0].id, finish: "gold" },
-    ]);
-  });
-  await pages[1].waitForFunction(
-    (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
-    post.id,
-  );
-  const response = await pages[1].evaluate(async (post) => {
-    const { allCards } = await import("/src/game/catalogue.ts");
-    return window.ms.social.offer(post, [
-      { instanceId: "owned_b", cardId: allCards[1].id, finish: "reverse" },
-    ]);
-  }, post);
-  await pages[0].waitForFunction(
-    (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
-    response.id,
-  );
-  await pages[0].waitForFunction(async () => {
-    try {
-      const r = await window.ms.multiplayer.request("/data/social/ms_test_0");
-      return r.record.data.entries.some((e) => e.kind === "post");
-    } catch {
-      return false;
-    }
-  });
-  await pages[0].evaluate(() => {
-    const { social, profile } = window.ms;
-    social.stop();
-    social.bind(profile);
-  });
-  await pages[0].waitForFunction(
-    (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
-    response.id,
-  );
-  await pages[0].evaluate(async () => {
-    const reactModule = await import("/node_modules/.vite/deps/react.js");
-    const React = reactModule.default ?? reactModule;
-    const dom = await import("/node_modules/.vite/deps/react-dom_client.js");
-    const createRoot = dom.createRoot ?? dom.default.createRoot;
-    const { Social } = await import("/src/components/Social.tsx");
-    const { initialSave } = await import("/src/game/engine.ts");
-    const { allCards } = await import("/src/game/catalogue.ts");
-    await import("/src/styles/app.css");
-    await import("/src/styles/mini.css");
-    await import("/src/styles/mini-update.css");
-    const game = {
-      profile: window.ms.profile,
-      save: {
-        ...initialSave(),
-        owned: [
-          {
-            instanceId: "owned_a",
-            cardId: allCards[0].id,
-            finish: "gold",
-            ham: 10,
-            tier: 1,
-            setId: allCards[0].setId,
-            obtainedAt: 1,
-            openingId: "test",
-          },
-        ],
-      },
-      update: async () => {},
-      busy: false,
-    };
-    document.body.innerHTML = '<div id="test-root"></div>';
-    createRoot(document.getElementById("test-root")).render(
-      React.createElement(Social, {
-        game,
-        onInspect: (...args) => {
-          window.lastInspection = args;
-        },
-      }),
+  if (!noRecords) {
+    const message = "actual-message";
+    await pages[0].evaluate((id) => window.ms.social.vote(id, 1), message);
+    await pages[1].waitForFunction(() =>
+      window.ms.social
+        .snapshot()
+        .entries.some((e) => e.kind === "vote" && e.vote === 1),
     );
-    await window.ms.multiplayer.history();
-  });
-  await pages[0].getByText("History message 39", { exact: true }).waitFor();
-  assert.equal(
-    await pages[0].getByRole("button", { name: "Server and room" }).count(),
-    0,
-  );
-  assert.equal(await pages[0].getByLabel("Multiplayer server").count(), 0);
-  const gutter = await pages[0].locator(".ms-chat").evaluate((e) => {
-    const p = e.parentElement,
-      s = getComputedStyle(p),
-      available =
-        p.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
-    return parseFloat(getComputedStyle(e).marginLeft) / available;
-  });
-  assert(gutter >= 0.029 && gutter <= 0.031, "chat has a 3% scrolling gutter");
+    await pages[0].evaluate((id) => window.ms.social.vote(id, -1), message);
+    await pages[1].waitForFunction(
+      () =>
+        window.ms.social.snapshot().entries.filter((e) => e.kind === "vote")
+          .length === 1 &&
+        window.ms.social.snapshot().entries.find((e) => e.kind === "vote")
+          .vote === -1,
+    );
+    const post = await pages[0].evaluate(async () => {
+      const { allCards } = await import("/src/game/catalogue.ts");
+      return window.ms.social.post([
+        { instanceId: "owned_a", cardId: allCards[0].id, finish: "gold" },
+      ]);
+    });
+    await pages[1].waitForFunction(
+      (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
+      post.id,
+    );
+    const response = await pages[1].evaluate(async (post) => {
+      const { allCards } = await import("/src/game/catalogue.ts");
+      return window.ms.social.offer(post, [
+        { instanceId: "owned_b", cardId: allCards[1].id, finish: "reverse" },
+      ]);
+    }, post);
+    await pages[0].waitForFunction(
+      (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
+      response.id,
+    );
+    await pages[0].waitForFunction(async () => {
+      try {
+        const r = await window.ms.multiplayer.request("/data/social/ms_test_0");
+        return r.record.data.entries.some((e) => e.kind === "post");
+      } catch {
+        return false;
+      }
+    });
+    await pages[0].evaluate(() => {
+      const { social, profile } = window.ms;
+      social.stop();
+      social.bind(profile);
+    });
+    await pages[0].waitForFunction(
+      (id) => window.ms.social.snapshot().entries.some((e) => e.id === id),
+      response.id,
+    );
+    await pages[0].evaluate(async () => {
+      const reactModule = await import("/node_modules/.vite/deps/react.js");
+      const React = reactModule.default ?? reactModule;
+      const dom = await import("/node_modules/.vite/deps/react-dom_client.js");
+      const createRoot = dom.createRoot ?? dom.default.createRoot;
+      const { Social } = await import("/src/components/Social.tsx");
+      const { initialSave } = await import("/src/game/engine.ts");
+      const { allCards } = await import("/src/game/catalogue.ts");
+      await import("/src/styles/app.css");
+      await import("/src/styles/mini.css");
+      await import("/src/styles/mini-update.css");
+      const game = {
+        profile: window.ms.profile,
+        save: {
+          ...initialSave(),
+          owned: [
+            {
+              instanceId: "owned_a",
+              cardId: allCards[0].id,
+              finish: "gold",
+              ham: 10,
+              tier: 1,
+              setId: allCards[0].setId,
+              obtainedAt: 1,
+              openingId: "test",
+            },
+          ],
+        },
+        update: async () => {},
+        busy: false,
+      };
+      document.body.innerHTML = '<div id="test-root"></div>';
+      createRoot(document.getElementById("test-root")).render(
+        React.createElement(Social, {
+          game,
+          onInspect: (...args) => {
+            window.lastInspection = args;
+          },
+        }),
+      );
+      await window.ms.multiplayer.history();
+    });
+    await pages[0].getByText("History message 39", { exact: true }).waitFor();
+    assert.equal(
+      await pages[0].getByRole("button", { name: "Server and room" }).count(),
+      0,
+    );
+    assert.equal(await pages[0].getByLabel("Multiplayer server").count(), 0);
+    const gutter = await pages[0].locator(".ms-chat").evaluate((e) => {
+      const p = e.parentElement,
+        s = getComputedStyle(p),
+        available =
+          p.clientWidth -
+          parseFloat(s.paddingLeft) -
+          parseFloat(s.paddingRight);
+      return parseFloat(getComputedStyle(e).marginLeft) / available;
+    });
+    assert(
+      gutter >= 0.029 && gutter <= 0.031,
+      "chat has a 3% scrolling gutter",
+    );
 
-  assert(
+    assert(
+      await pages[0]
+        .locator(".ms-chat")
+        .evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight < 3),
+      "history scrolls to latest",
+    );
+    await pages[1].evaluate(() =>
+      window.ms.multiplayer.chat("New latest message"),
+    );
+    await pages[0].getByText("New latest message", { exact: true }).waitFor();
+    assert(
+      await pages[0]
+        .locator(".ms-chat")
+        .evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight < 3),
+      "incoming chat scrolls to latest",
+    );
     await pages[0]
-      .locator(".ms-chat")
-      .evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight < 3),
-    "history scrolls to latest",
-  );
-  await pages[1].evaluate(() =>
-    window.ms.multiplayer.chat("New latest message"),
-  );
-  await pages[0].getByText("New latest message", { exact: true }).waitFor();
-  assert(
+      .getByRole("button", { name: "Show off or trade a card" })
+      .click();
     await pages[0]
-      .locator(".ms-chat")
-      .evaluate((e) => e.scrollHeight - e.scrollTop - e.clientHeight < 3),
-    "incoming chat scrolls to latest",
-  );
-  await pages[0]
-    .getByRole("button", { name: "Show off or trade a card" })
-    .click();
-  await pages[0]
-    .getByRole("dialog")
-    .locator(".ms-card-grade")
-    .filter({ hasText: "HAM 10" })
-    .waitFor();
-  await pages[0].getByRole("button", { name: "Close card picker" }).click();
-  // Show-offs are persistent chat records with exact grade/finish, not trade invites.
-  await pages[0]
-    .getByRole("button", { name: "Show off or trade a card" })
-    .click();
-  await pages[0].locator(".ms-picker-cards>button").first().click();
-  await pages[0].getByRole("button", { name: "SHOW OFF", exact: true }).click();
-  const show = pages[0]
-    .locator(".chat-message")
-    .filter({ hasText: "Showing off" });
-  await show.waitFor();
-  assert.equal(
-    await show.getByRole("button", { name: "Offer cards" }).count(),
-    0,
-  );
-  assert.equal(
-    await show.locator(".ms-reactions button").count(),
-    0,
-    "reaction counts stay hidden until used",
-  );
-  await show.getByRole("button", { name: "React to message" }).click();
-  assert.equal(await show.locator(".ms-reactions button").count(), 4);
-  await show.getByRole("button", { name: "Love reaction" }).click();
-  assert.equal(
-    (
-      await show.getByRole("button", { name: "Love reaction" }).innerText()
-    ).replace(/\s/g, ""),
-    "❤️1",
-  );
-  await pages[1].waitForFunction(() =>
-    window.ms.social
-      .snapshot()
-      .entries.some(
-        (e) => e.kind === "reaction" && e.reaction === "love" && e.active,
-      ),
-  );
-  await show.locator(".ms-offered-cards>button").click();
-  assert.equal(await pages[0].evaluate(() => window.lastInspection[1].ham), 10);
-  await pages[0]
-    .getByRole("button", { name: "Show off or trade a card" })
-    .click();
-  await pages[0].locator(".ms-picker-cards>button").first().click();
-  await pages[0]
-    .getByRole("button", { name: "POST TRADE · 1/3", exact: true })
-    .click();
-  await pages[0].getByText(/Single-card trade.*Submitting an offer/).waitFor();
-  await pages[0]
-    .getByRole("button", { name: "CONFIRM SINGLE TRADE", exact: true })
-    .click();
-  const remove = pages[0]
-    .getByRole("button", { name: "Remove trade listing" })
-    .last();
-  await remove.click();
-  await pages[1].waitForFunction(() =>
-    window.ms.social.snapshot().entries.some((e) => e.withdrawn),
-  );
-  const removed = await pages[1].evaluate(() =>
-    window.ms.social.snapshot().entries.find((e) => e.withdrawn),
-  );
-  const denied = await pages[1].evaluate((p) => {
-    try {
-      window.ms.social.withdraw(p);
-      return false;
-    } catch {
-      return true;
-    }
-  }, removed);
-  assert(denied, "only the author withdraws");
-  await pages[0].waitForFunction(async () => {
-    try {
-      const r = await window.ms.multiplayer.request("/data/social/ms_test_0");
-      return r.record.data.entries.some((e) => e.withdrawn);
-    } catch {
-      return false;
-    }
-  });
-  await pages[0].evaluate(() => {
-    const { social, profile } = window.ms;
-    social.stop();
-    social.bind(profile);
-  });
-  await pages[0].waitForFunction(
-    () =>
-      window.ms.social.snapshot().entries.some((e) => e.withdrawn) &&
-      window.ms.social.snapshot().entries.some((e) => e.mode === "showcase"),
-  );
+      .getByRole("dialog")
+      .locator(".ms-card-grade")
+      .filter({ hasText: "HAM 10" })
+      .waitFor();
+    await pages[0].getByRole("button", { name: "Close card picker" }).click();
+    // Show-offs are persistent chat records with exact grade/finish, not trade invites.
+    await pages[0]
+      .getByRole("button", { name: "Show off or trade a card" })
+      .click();
+    await pages[0].locator(".ms-picker-cards>button").first().click();
+    await pages[0]
+      .getByRole("button", { name: "SHOW OFF", exact: true })
+      .click();
+    const show = pages[0]
+      .locator(".chat-message")
+      .filter({ hasText: "Showing off" });
+    await show.waitFor();
+    assert.equal(
+      await show.getByRole("button", { name: "Offer cards" }).count(),
+      0,
+    );
+    assert.equal(
+      await show.locator(".ms-reactions button").count(),
+      0,
+      "reaction counts stay hidden until used",
+    );
+    await show.getByRole("button", { name: "React to message" }).click();
+    assert.equal(await show.locator(".ms-reactions button").count(), 4);
+    await show.getByRole("button", { name: "Love reaction" }).click();
+    assert.equal(
+      (
+        await show.getByRole("button", { name: "Love reaction" }).innerText()
+      ).replace(/\s/g, ""),
+      "❤️1",
+    );
+    await pages[1].waitForFunction(() =>
+      window.ms.social
+        .snapshot()
+        .entries.some(
+          (e) => e.kind === "reaction" && e.reaction === "love" && e.active,
+        ),
+    );
+    await show.locator(".ms-offered-cards>button").click();
+    assert.equal(
+      await pages[0].evaluate(() => window.lastInspection[1].ham),
+      10,
+    );
+    await pages[0]
+      .getByRole("button", { name: "Show off or trade a card" })
+      .click();
+    await pages[0].locator(".ms-picker-cards>button").first().click();
+    await pages[0]
+      .getByRole("button", { name: "POST TRADE · 1/3", exact: true })
+      .click();
+    await pages[0]
+      .getByText(/Single-card trade.*Submitting an offer/)
+      .waitFor();
+    await pages[0]
+      .getByRole("button", { name: "CONFIRM SINGLE TRADE", exact: true })
+      .click();
+    const remove = pages[0]
+      .getByRole("button", { name: "Remove trade listing" })
+      .last();
+    await remove.click();
+    await pages[1].waitForFunction(() =>
+      window.ms.social.snapshot().entries.some((e) => e.withdrawn),
+    );
+    const removed = await pages[1].evaluate(() =>
+      window.ms.social.snapshot().entries.find((e) => e.withdrawn),
+    );
+    const denied = await pages[1].evaluate((p) => {
+      try {
+        window.ms.social.withdraw(p);
+        return false;
+      } catch {
+        return true;
+      }
+    }, removed);
+    assert(denied, "only the author withdraws");
+    await pages[0].waitForFunction(async () => {
+      try {
+        const r = await window.ms.multiplayer.request("/data/social/ms_test_0");
+        return r.record.data.entries.some((e) => e.withdrawn);
+      } catch {
+        return false;
+      }
+    });
+    await pages[0].evaluate(() => {
+      const { social, profile } = window.ms;
+      social.stop();
+      social.bind(profile);
+    });
+    await pages[0].waitForFunction(
+      () =>
+        window.ms.social.snapshot().entries.some((e) => e.withdrawn) &&
+        window.ms.social.snapshot().entries.some((e) => e.mode === "showcase"),
+    );
 
-  await pages[0].getByRole("button", { name: /Offers/ }).click();
-  await pages[0].getByRole("button", { name: "Review & accept" }).waitFor();
-  assert(records.has("ms_test_0"));
-  assert(records.has("ms_test_1"));
+    await pages[0].getByRole("button", { name: /Offers/ }).click();
+    await pages[0].getByRole("button", { name: "Review & accept" }).waitFor();
+    assert(records.has("ms_test_0"));
+    assert(records.has("ms_test_1"));
+  }
   async function mountTrade(page, index, seed = false) {
     await page.evaluate(
       async ({ index, seed }) => {
@@ -449,127 +468,129 @@ try {
         window.ms.multiplayer.snapshot().status === "online",
     );
   }
-  for (let i = 0; i < 2; i++) await mountTrade(pages[i], i, true);
-  for (const p of pages)
-    await p.waitForFunction(() =>
-      Object.values(window.ms.multiplayer.snapshot().peers).some(
-        (p) => p.profile.playerId !== window.ms.profile.playerId,
-      ),
-    );
-  await pages[0].evaluate(() =>
-    window.ms.trading.invite("test_1", ["owned_a"], ["owned_b"]),
-  );
-  for (const p of pages) {
-    await p.waitForFunction(() => {
-      const t = window.ms.trading.snapshot().session;
-      return (
-        t?.offers.test_0?.[0]?.ham === 10 && t?.offers.test_1?.[0]?.ham === 7
+  if (!noRecords) {
+    for (let i = 0; i < 2; i++) await mountTrade(pages[i], i, true);
+    for (const p of pages)
+      await p.waitForFunction(() =>
+        Object.values(window.ms.multiplayer.snapshot().peers).some(
+          (p) => p.profile.playerId !== window.ms.profile.playerId,
+        ),
       );
-    });
-    await p.locator('.trade-offers [aria-label="HAM 10"]').waitFor();
-    await p.locator('.trade-offers [aria-label="HAM 7"]').waitFor();
-    assert.equal(
-      await p.locator(".trade-offers .card-view").count(),
-      2,
-      "both offers prefilled",
-    );
-  }
-  const tradeId = await pages[0].evaluate(
-    () => window.ms.trading.snapshot().session.id,
-  );
-  await pages[0]
-    .getByRole("button", { name: "CONFIRM THESE CARDS", exact: true })
-    .click();
-  await pages[0].waitForFunction(() =>
-    window.ms.game.save.trades?.some((t) => t.status === "ready"),
-  );
-  await pages[1].waitForFunction(() =>
-    window.ms.trading.snapshot().session?.ready.includes("test_0"),
-  );
-  assert.deepEqual(
     await pages[0].evaluate(() =>
-      window.ms.game.save.owned.map((c) => [c.instanceId, c.ham]),
-    ),
-    [["owned_a", 10]],
-    "first confirmation does not transfer ownership",
-  );
-  await pages[0].reload();
-  await mountTrade(pages[0], 0, false);
-  await pages[0].waitForFunction(
-    () => window.ms.trading.snapshot().session?.status === "settling",
-  );
-  await pages[0].locator('.trade-offers [aria-label="HAM 10"]').waitFor();
-  await pages[0].locator('.trade-offers [aria-label="HAM 7"]').waitFor();
-  await pages[1]
-    .getByRole("button", { name: "CONFIRM THESE CARDS", exact: true })
-    .click();
-  for (const p of pages)
-    await p.waitForFunction(
-      () => window.ms.trading.snapshot().session?.status === "completed",
-      {},
-      { timeout: 20000 },
+      window.ms.trading.invite("test_1", ["owned_a"], ["owned_b"]),
     );
-  for (let i = 0; i < 2; i++) {
-    await pages[i].waitForFunction(
-      async ({ id, missingTrading }) => {
-        try {
-          const { tradeRecordId } = await import("/src/game/trading.ts");
-          const r = await window.ms.multiplayer.request(
-            "/data/" +
-              (missingTrading ? "social" : "trading") +
-              "/" +
-              tradeRecordId(id, window.ms.profile.playerId),
-          );
-          return r.record?.data?.status === "completed";
-        } catch {
-          return false;
-        }
-      },
-      { id: tradeId, missingTrading },
+    for (const p of pages) {
+      await p.waitForFunction(() => {
+        const t = window.ms.trading.snapshot().session;
+        return (
+          t?.offers.test_0?.[0]?.ham === 10 && t?.offers.test_1?.[0]?.ham === 7
+        );
+      });
+      await p.locator('.trade-offers [aria-label="HAM 10"]').waitFor();
+      await p.locator('.trade-offers [aria-label="HAM 7"]').waitFor();
+      assert.equal(
+        await p.locator(".trade-offers .card-view").count(),
+        2,
+        "both offers prefilled",
+      );
+    }
+    const tradeId = await pages[0].evaluate(
+      () => window.ms.trading.snapshot().session.id,
     );
-    const value = await pages[i].evaluate(async () => {
-      const { loadSave } = await import("/src/services/persistence.ts");
-      return loadSave(window.ms.profile.playerId);
-    });
-    assert.equal(value.owned.length, 1, "one card after settlement");
+    await pages[0]
+      .getByRole("button", { name: "CONFIRM THESE CARDS", exact: true })
+      .click();
+    await pages[0].waitForFunction(() =>
+      window.ms.game.save.trades?.some((t) => t.status === "ready"),
+    );
+    await pages[1].waitForFunction(() =>
+      window.ms.trading.snapshot().session?.ready.includes("test_0"),
+    );
+    assert.deepEqual(
+      await pages[0].evaluate(() =>
+        window.ms.game.save.owned.map((c) => [c.instanceId, c.ham]),
+      ),
+      [["owned_a", 10]],
+      "first confirmation does not transfer ownership",
+    );
+    await pages[0].reload();
+    await mountTrade(pages[0], 0, false);
+    await pages[0].waitForFunction(
+      () => window.ms.trading.snapshot().session?.status === "settling",
+    );
+    await pages[0].locator('.trade-offers [aria-label="HAM 10"]').waitFor();
+    await pages[0].locator('.trade-offers [aria-label="HAM 7"]').waitFor();
+    await pages[1]
+      .getByRole("button", { name: "CONFIRM THESE CARDS", exact: true })
+      .click();
+    for (const p of pages)
+      await p.waitForFunction(
+        () => window.ms.trading.snapshot().session?.status === "completed",
+        {},
+        { timeout: 20000 },
+      );
+    for (let i = 0; i < 2; i++) {
+      await pages[i].waitForFunction(
+        async ({ id, missingTrading }) => {
+          try {
+            const { tradeRecordId } = await import("/src/game/trading.ts");
+            const r = await window.ms.multiplayer.request(
+              "/data/" +
+                (missingTrading ? "social" : "trading") +
+                "/" +
+                tradeRecordId(id, window.ms.profile.playerId),
+            );
+            return r.record?.data?.status === "completed";
+          } catch {
+            return false;
+          }
+        },
+        { id: tradeId, missingTrading },
+      );
+      const value = await pages[i].evaluate(async () => {
+        const { loadSave } = await import("/src/services/persistence.ts");
+        return loadSave(window.ms.profile.playerId);
+      });
+      assert.equal(value.owned.length, 1, "one card after settlement");
+      assert.equal(
+        value.owned[0].ham,
+        i ? 10 : 7,
+        "HAM grade transfers unchanged",
+      );
+      assert.equal(
+        value.owned[0].finish,
+        i ? "gold" : "reverse",
+        "finish transfers unchanged",
+      );
+      assert.equal(
+        value.trades.filter((t) => t.id === tradeId && t.status === "completed")
+          .length,
+        1,
+        "single completed journal",
+      );
+      assert.equal(
+        value.owned[0].instanceId,
+        `tr_${tradeId}_0`,
+        "deterministic incoming instance",
+      );
+      await pages[i].evaluate(async () => {
+        await window.ms.trading.recover();
+        await window.ms.trading.recover();
+      });
+      const count = await pages[i].evaluate(async () => {
+        const { loadSave } = await import("/src/services/persistence.ts");
+        return (await loadSave(window.ms.profile.playerId)).owned.length;
+      });
+      assert.equal(count, 1, "repeated recovery cannot duplicate cards");
+    }
     assert.equal(
-      value.owned[0].ham,
-      i ? 10 : 7,
-      "HAM grade transfers unchanged",
+      [...records.values()].filter(
+        (r) => r.data.id === tradeId && r.data.status === "completed",
+      ).length,
+      2,
+      "both per-owner completion receipts persisted",
     );
-    assert.equal(
-      value.owned[0].finish,
-      i ? "gold" : "reverse",
-      "finish transfers unchanged",
-    );
-    assert.equal(
-      value.trades.filter((t) => t.id === tradeId && t.status === "completed")
-        .length,
-      1,
-      "single completed journal",
-    );
-    assert.equal(
-      value.owned[0].instanceId,
-      `tr_${tradeId}_0`,
-      "deterministic incoming instance",
-    );
-    await pages[i].evaluate(async () => {
-      await window.ms.trading.recover();
-      await window.ms.trading.recover();
-    });
-    const count = await pages[i].evaluate(async () => {
-      const { loadSave } = await import("/src/services/persistence.ts");
-      return (await loadSave(window.ms.profile.playerId)).owned.length;
-    });
-    assert.equal(count, 1, "repeated recovery cannot duplicate cards");
   }
-  assert.equal(
-    [...records.values()].filter(
-      (r) => r.data.id === tradeId && r.data.status === "completed",
-    ).length,
-    2,
-    "both per-owner completion receipts persisted",
-  );
   // New consent flow: submitting the social offer authorizes the peer client.
   // Only the listing owner taps CONFIRM; the offering client has no second tap.
   for (let i = 0; i < 2; i++) await mountTrade(pages[i], i, true);
@@ -678,8 +699,16 @@ try {
       3,
     );
   }
+  assert(
+    !recordCalls.some(
+      (path) => /\/data\/social\/(mx_|mr_)/.test(path) && noRecords,
+    ),
+    "new relay trade never requires a generic trade record",
+  );
   console.log(
-    "PASS: two real browser contexts relay replaceable votes, trade posts and threaded counteroffers; persistent reload restores both players; HAM10/HAM7 legacy trade settles across reload; new device-bound social offer completes with only the accepting user confirmation, no duplicate cards, and reload persistence.",
+    noRecords
+      ? "PASS: all generic record routes return404; device-bound three-card relay trade completes with one human acceptance and survives reload; no generic trade record requests."
+      : "PASS: social messages/offers and legacy recovery; device-bound three-card relay trade with one acceptance, exact HAM grades, and reload persistence.",
   );
 } finally {
   await browser.close();

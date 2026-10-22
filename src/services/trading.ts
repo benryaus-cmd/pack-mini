@@ -1,7 +1,9 @@
+import { RelayTradeExchange, type RelayTerms } from "./relayTradeExchange";
 import {
   TradeExchange,
   collectionDevice,
   type ExchangeTerms,
+  type ExchangeDependencies,
 } from "./tradeExchange";
 import { social } from "./social";
 import { livePosts, type SocialEntry, type SocialCard } from "../game/social";
@@ -41,6 +43,8 @@ class Trading {
   private prefilled = new Set<string>();
   private epoch = 0;
   private exchange: TradeExchange | null = null;
+  private relayExchange: RelayTradeExchange | null = null;
+  private exchangeDependencies: ExchangeDependencies | null = null;
   private dismissed = new Set<string>();
   private visibleSince = 0;
   private fast() {
@@ -53,7 +57,7 @@ class Trading {
       JSON.stringify(
         b.map((c) => [c.instanceId, c.cardId, c.finish, c.ham ?? null]).sort(),
       );
-    this.exchange = new TradeExchange({
+    const dependencies: ExchangeDependencies = {
       player: () => {
         check();
         return this.me();
@@ -114,8 +118,23 @@ class Trading {
           error: error ?? "",
         });
       },
-    });
+    };
+    this.exchangeDependencies = dependencies;
+    this.exchange = new TradeExchange(dependencies);
     return this.exchange;
+  }
+  private relay() {
+    if (!this.relayExchange) {
+      this.fast();
+      this.relayExchange = new RelayTradeExchange({
+        ...this.exchangeDependencies!,
+        peerOnline: (player) =>
+          Object.values(multiplayer.snapshot().peers).some(
+            (p) => p.profile.playerId === player,
+          ),
+      });
+    }
+    return this.relayExchange;
   }
   reviewOffer(e: SocialEntry) {
     this.expire();
@@ -151,9 +170,9 @@ class Trading {
     );
     if (mine.some((c) => !c))
       throw Error("The exact requested copies are unavailable on this device.");
-    const t: ExchangeTerms = {
+    const t: RelayTerms = {
       id: generateId().slice(0, 20),
-      protocol: 2,
+      protocol: 3,
       parties: [this.me(), e.player],
       devices: { [this.me()]: collectionDevice(), [e.player]: e.device },
       offers: {
@@ -170,6 +189,7 @@ class Trading {
   }
   expire() {
     this.exchange?.expire();
+    this.relayExchange?.expire();
     const t = this.state.session;
     if (!t) return;
     const at =
@@ -310,7 +330,11 @@ class Trading {
     if (!this.game?.profile) return;
     if (event === "exchange") {
       const peer = multiplayer.snapshot().peers[from];
-      if (peer) await this.fast().receive(data, peer.profile.playerId);
+      if (peer) {
+        if ((data as { wire?: number })?.wire === 3)
+          await this.relay().receive(data, peer.profile.playerId);
+        else await this.fast().receive(data, peer.profile.playerId);
+      }
       return;
     }
     if (event !== "trade") return;
@@ -519,6 +543,23 @@ class Trading {
     return record;
   }
   async confirm() {
+    if (this.state.session?.protocol === 3) {
+      const t = this.state.session as LiveTrade & RelayTerms;
+      if (Date.now() >= t.expiresAt) {
+        this.expire();
+        return;
+      }
+      this.patch({ busy: true, error: "" });
+      try {
+        await this.relay().start({ ...t, expiresAt: Date.now() + 30000 });
+      } catch (e) {
+        this.patch({ error: (e as Error).message });
+      } finally {
+        this.patch({ busy: false });
+      }
+      return;
+    }
+
     if (this.state.session?.protocol === 2) {
       const t = this.state.session as LiveTrade & ExchangeTerms;
       if (Date.now() >= t.expiresAt) {
@@ -658,6 +699,12 @@ class Trading {
     }
   }
   async decline() {
+    if (this.state.session?.protocol === 3) {
+      await this.relay().cancel();
+      this.patch({ session: null });
+      return;
+    }
+
     if (this.state.session?.protocol === 2) {
       await this.fast().cancel();
       this.patch({ session: null });
@@ -700,7 +747,10 @@ class Trading {
   }
   async recover() {
     this.expire();
-    if (this.game?.profile && this.game.save) await this.fast().tick();
+    if (this.game?.profile && this.game.save) {
+      await this.relay().tick();
+      await this.fast().tick();
+    }
     if (
       this.recovering ||
       this.state.busy ||
@@ -715,7 +765,7 @@ class Trading {
     try {
       const me = this.me();
       for (const j of (this.game.save.trades ?? []).filter(
-        (j) => j.status === "ready" && j.protocol !== 2,
+        (j) => j.status === "ready" && !j.protocol,
       )) {
         const records = this.records();
         const own = await records.read(j.id, me);
@@ -826,6 +876,8 @@ class Trading {
   }
   reset() {
     this.exchange = null;
+    this.relayExchange = null;
+    this.exchangeDependencies = null;
     this.dismissed.clear();
     this.requested = [];
     this.requestedFor = "";

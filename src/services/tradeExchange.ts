@@ -26,17 +26,22 @@ type Receipt = {
   phase: "prepared" | "applied";
 };
 type RecordValue<T> = { owner: string; revision: number; data: T };
-type Dependencies = {
+export type ExchangeDependencies = {
   player: () => string;
   device: () => string;
   save: () => Save;
   update: (fn: (s: Save) => Save) => Promise<Save>;
   now: () => number;
   online: () => boolean;
-  authorize: (terms: ExchangeTerms) => boolean;
+  authorize: (
+    terms: Omit<ExchangeTerms, "protocol"> & { protocol: 2 | 3 },
+  ) => boolean;
   send: (packet: any) => boolean;
   request: (path: string, options?: RequestInit) => Promise<any>;
-  show: (terms: ExchangeTerms | null, error?: string) => void;
+  show: (
+    terms: (Omit<ExchangeTerms, "protocol"> & { protocol: 2 | 3 }) | null,
+    error?: string,
+  ) => void;
 };
 const status = (e: unknown) => (e as { status?: number })?.status;
 export function collectionDevice() {
@@ -49,10 +54,10 @@ export function collectionDevice() {
   return id;
 }
 export class TradeExchange {
-  private d: Dependencies;
+  private d: ExchangeDependencies;
   private busy = false;
   private foreground: ExchangeTerms | null = null;
-  constructor(dependencies: Dependencies) {
+  constructor(dependencies: ExchangeDependencies) {
     this.d = dependencies;
   }
   private path(t: ExchangeTerms) {
