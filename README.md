@@ -1,5 +1,7 @@
 # PACK MINI
 
+See the [AAA collector-game wishlist](WISHLIST.md) for the proposed direction beyond pack opening, phone priorities and an AI-deliverable roadmap.
+
 Tiny packs, big feelings. A separate portrait collector game forked from PACKVERSE 1.2; the original Pack-Opener repository remains unchanged.
 
 Collect distinct TCGdex artwork featuring Charizard, Pikachu, Mewtwo, Bulbasaur, Charmander, Squirtle, Greninja, Lucario, Eevee, Umbreon and Mimikyu. English/Japanese language slots share overlapping artwork binders. Complete a binder to display its gym badge; losing the last required card removes that badge. Your HAM 10 vault displays perfect graded instances.
